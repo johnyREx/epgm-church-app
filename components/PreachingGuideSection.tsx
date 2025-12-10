@@ -37,9 +37,20 @@ const monthFiles: MonthData[] = [
 ];
 
 const preachingCalendar: Record<string, MonthData> = {};
+
 monthFiles.forEach((m) => {
-  const mm = m.month < 10 ? `0${m.month}` : `${m.month}`;
-  const key = `${m.year}-${mm}`;
+  const verseKeys = Object.keys(m.verses);
+  if (verseKeys.length === 0) {
+    return;
+  }
+  const firstDate = verseKeys[0];
+  const parts = firstDate.split("-");
+  if (parts.length < 2) {
+    return;
+  }
+  const yearStr = parts[0];
+  const monthStr = parts[1];
+  const key = `${yearStr}-${monthStr}`;
   preachingCalendar[key] = m;
 });
 
@@ -58,37 +69,88 @@ const monthNames = [
   "December",
 ];
 
+const weekdayShort = ["S", "M", "T", "W", "T", "F", "S"];
+
 function pad(n: number) {
   return n < 10 ? `0${n}` : `${n}`;
 }
+
+type CalendarCell = {
+  label: string;
+  dateKey: string | null;
+  hasEntry: boolean;
+  isToday: boolean;
+};
 
 export default function PreachingGuideSection() {
   const initialYear = 2025;
   const initialMonth = 0;
 
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${pad(
+    today.getMonth() + 1
+  )}-${pad(today.getDate())}`;
+
   const [year, setYear] = useState(initialYear);
   const [month, setMonth] = useState(initialMonth);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
 
   const monthKey = `${year}-${pad(month + 1)}`;
   const monthData = preachingCalendar[monthKey];
 
-  const entries = useMemo(() => {
-    if (!monthData) return [];
-    const keys = Object.keys(monthData.verses).sort();
-    return keys.map((key) => {
-      const date = new Date(key);
-      const label = date.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-      return {
-        key,
-        label,
-        text: monthData.verses[key],
-      };
-    });
-  }, [monthData]);
+  const daysInMonth = useMemo(
+    () => new Date(year, month + 1, 0).getDate(),
+    [year, month]
+  );
+
+  const firstDayOfWeek = useMemo(
+    () => new Date(year, month, 1).getDay(),
+    [year, month]
+  );
+
+  const calendarCells: CalendarCell[] = useMemo(() => {
+    const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
+    const cells: CalendarCell[] = [];
+
+    for (let i = 0; i < totalCells; i++) {
+      const dayNum = i - firstDayOfWeek + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) {
+        cells.push({
+          label: "",
+          dateKey: null,
+          hasEntry: false,
+          isToday: false,
+        });
+      } else {
+        const dateKey = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
+        const hasEntry = !!monthData?.verses[dateKey];
+        const isToday = dateKey === todayKey;
+        cells.push({
+          label: `${dayNum}`,
+          dateKey,
+          hasEntry,
+          isToday,
+        });
+      }
+    }
+
+    return cells;
+  }, [daysInMonth, firstDayOfWeek, month, monthData, todayKey, year]);
+
+  const selectedText =
+    selectedDateKey && monthData?.verses[selectedDateKey]
+      ? monthData.verses[selectedDateKey]
+      : null;
+
+  const selectedDateLabel =
+    selectedDateKey && selectedText
+      ? new Date(selectedDateKey).toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })
+      : null;
 
   const handlePrevMonth = () => {
     let newMonth = month - 1;
@@ -99,6 +161,7 @@ export default function PreachingGuideSection() {
     }
     setMonth(newMonth);
     setYear(newYear);
+    setSelectedDateKey(null);
   };
 
   const handleNextMonth = () => {
@@ -110,6 +173,7 @@ export default function PreachingGuideSection() {
     }
     setMonth(newMonth);
     setYear(newYear);
+    setSelectedDateKey(null);
   };
 
   return (
@@ -120,10 +184,10 @@ export default function PreachingGuideSection() {
       </Text>
 
       <View style={styles.monthHeader}>
-        <Pressable onPress={handlePrevMonth} style={styles.arrow}>
-          <Text style={styles.arrowText}>◀</Text>
+        <Pressable onPress={handlePrevMonth} style={styles.monthArrow}>
+          <Text style={styles.monthArrowText}>‹</Text>
         </Pressable>
-        <View style={styles.monthInfo}>
+        <View style={styles.monthTitleBlock}>
           <Text style={styles.monthTitle}>
             {monthNames[month]} {year}
           </Text>
@@ -133,33 +197,96 @@ export default function PreachingGuideSection() {
               : "No preaching guide has been added for this month yet."}
           </Text>
         </View>
-        <Pressable onPress={handleNextMonth} style={styles.arrow}>
-          <Text style={styles.arrowText}>▶</Text>
+        <Pressable onPress={handleNextMonth} style={styles.monthArrow}>
+          <Text style={styles.monthArrowText}>›</Text>
         </Pressable>
       </View>
 
+      <View style={styles.calendarCard}>
+        <View style={styles.weekdaysRow}>
+          {weekdayShort.map((d) => (
+            <Text key={d} style={styles.weekdayLabel}>
+              {d}
+            </Text>
+          ))}
+        </View>
+
+        <View style={styles.daysGrid}>
+          {calendarCells.map((cell, index) => {
+            const isSelected =
+              cell.dateKey &&
+              selectedDateKey &&
+              cell.dateKey === selectedDateKey &&
+              !!selectedText;
+
+            const showDot = cell.hasEntry;
+
+            return (
+              <Pressable
+                key={index}
+                style={[
+                  styles.dayCell,
+                  cell.isToday && styles.dayToday,
+                  isSelected && styles.daySelected,
+                ]}
+                disabled={!cell.dateKey}
+                onPress={() => {
+                  if (cell.dateKey && cell.hasEntry) {
+                    setSelectedDateKey(cell.dateKey);
+                  }
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dayLabel,
+                    cell.hasEntry && styles.dayLabelWithEntry,
+                    isSelected && styles.dayLabelSelected,
+                  ]}
+                >
+                  {cell.label}
+                </Text>
+                {showDot && !isSelected && (
+                  <View style={styles.dayDot} />
+                )}
+                {showDot && isSelected && (
+                  <View style={styles.dayBar} />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       <ScrollView
-        style={styles.listCard}
-        contentContainerStyle={styles.listContent}
+        style={styles.detailsWrapper}
+        contentContainerStyle={styles.detailsContent}
         showsVerticalScrollIndicator={false}
       >
-        {entries.length > 0 ? (
-          entries.map((entry) => (
-            <View key={entry.key} style={styles.entryRow}>
-              <View style={styles.entryDateBadge}>
-                <Text style={styles.entryDateText}>{entry.label}</Text>
-              </View>
-              <View style={styles.entryTextBlock}>
-                <Text style={styles.entryMain}>{entry.text}</Text>
-              </View>
+        {selectedText && selectedDateLabel ? (
+          <>
+            <View style={styles.highlightCard}>
+              <Text style={styles.highlightDate}>{selectedDateLabel}</Text>
+              <Text style={styles.highlightText}>{selectedText}</Text>
             </View>
-          ))
+
+            <View style={styles.readingCard}>
+              <Text style={styles.readingTitle}>Daily Reading</Text>
+              <Text style={styles.readingText}>
+                {selectedText}
+              </Text>
+              <Text style={styles.readingHint}>
+                Use this scripture as your meditation and prayer focus for the
+                day.
+              </Text>
+            </View>
+          </>
         ) : monthData ? (
-          <Text style={styles.emptyText}>
-            No specific days have been configured for this month yet.
+          <Text style={styles.detailsEmpty}>
+            Tap any marked date in the calendar to view the scripture or prayer
+            focus for that day.
           </Text>
         ) : (
-          <Text style={styles.emptyText}>
+          <Text style={styles.detailsEmpty}>
             There is no preaching guide data for this month yet.
           </Text>
         )}
@@ -190,27 +317,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 6,
   },
-  arrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  monthArrow: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(15,23,42,0.9)",
+    backgroundColor: "rgba(15,23,42,0.95)",
     borderWidth: 1,
-    borderColor: "rgba(248,250,252,0.2)",
+    borderColor: "rgba(248,250,252,0.18)",
   },
-  arrowText: {
+  monthArrowText: {
     color: "#fefce8",
-    fontSize: 16,
+    fontSize: 18,
   },
-  monthInfo: {
+  monthTitleBlock: {
     flex: 1,
     marginHorizontal: 10,
   },
   monthTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: "#fefce8",
   },
   themeText: {
@@ -218,46 +345,134 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#fde68a",
   },
-  listCard: {
-    borderRadius: 18,
-    backgroundColor: "rgba(15,23,42,0.95)",
+  calendarCard: {
+    borderRadius: 24,
+    backgroundColor: "rgba(15,23,42,0.96)",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
   },
-  listContent: {
-    padding: 10,
-  },
-  entryRow: {
+  weekdaysRow: {
     flexDirection: "row",
-    marginBottom: 10,
+    justifyContent: "space-between",
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderColor: "rgba(148,163,184,0.4)",
+    paddingHorizontal: 6,
   },
-  entryDateBadge: {
-    minWidth: 90,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-    backgroundColor: "rgba(250,204,21,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(250,204,21,0.6)",
+  weekdayLabel: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 11,
+    letterSpacing: 0.5,
+    color: "#cbd5f5",
+    fontWeight: "600",
+  },
+  daysGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 6,
+  },
+  dayCell: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
   },
-  entryDateText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#fde68a",
+  dayToday: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(248,250,252,0.4)",
   },
-  entryTextBlock: {
-    flex: 1,
-    justifyContent: "center",
+  daySelected: {
+    borderRadius: 16,
+    backgroundColor: "#f97316",
   },
-  entryMain: {
-    fontSize: 13,
+  dayLabel: {
+    fontSize: 14,
+    color: "#9ca3af",
+    marginBottom: 3,
+  },
+  dayLabelWithEntry: {
     color: "#e5e7eb",
-    lineHeight: 20,
+    fontWeight: "600",
   },
-  emptyText: {
+  dayLabelSelected: {
+    color: "#0b1120",
+    fontWeight: "800",
+  },
+  dayDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#facc15",
+  },
+  dayBar: {
+    marginTop: 2,
+    width: 20,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: "#0b1120",
+  },
+  detailsWrapper: {
+    marginTop: 10,
+    borderRadius: 20,
+    backgroundColor: "rgba(15,23,42,0.96)",
+    borderWidth: 1,
+    borderColor: "rgba(248,250,252,0.12)",
+  },
+  detailsContent: {
+    padding: 12,
+    gap: 10,
+  },
+  highlightCard: {
+    borderRadius: 18,
+    padding: 12,
+    backgroundColor: "rgba(250,204,21,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(250,204,21,0.9)",
+    shadowColor: "#facc15",
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  highlightDate: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#fefce8",
+    marginBottom: 4,
+  },
+  highlightText: {
+    fontSize: 14,
+    color: "#0b1120",
+    fontWeight: "600",
+  },
+  readingCard: {
+    borderRadius: 16,
+    padding: 12,
+    backgroundColor: "rgba(15,23,42,0.98)",
+    borderWidth: 1,
+    borderColor: "rgba(148,163,184,0.6)",
+  },
+  readingTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#e5e7eb",
+    marginBottom: 4,
+  },
+  readingText: {
+    fontSize: 14,
+    color: "#e5e7eb",
+    lineHeight: 22,
+    marginBottom: 6,
+  },
+  readingHint: {
+    fontSize: 12,
+    color: "#9ca3af",
+    lineHeight: 18,
+  },
+  detailsEmpty: {
     fontSize: 13,
     color: "#9ca3af",
     lineHeight: 20,
