@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import HistorySection from "../components/HistorySection";
 import ConstitutionSection from "../components/ConstitutionSection";
 import PrayerRequestSection from "../components/PrayerRequestSection";
+import PreachingGuideSection from "../components/PreachingGuideSection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -68,12 +69,7 @@ export default function HomeScreen() {
       case "constitution":
         return <ConstitutionSection />
       case "preachingGuide":
-        return (
-          <Text style={styles.contentText}>
-            This is the Preaching Guide space for outlines, scriptures, topics,
-            and schedules.
-          </Text>
-        );
+        return <PreachingGuideSection />
       case "prayerRequest":
         return <PrayerRequestSection />
       case "bibleStudy":
