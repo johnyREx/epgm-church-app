@@ -21,11 +21,14 @@ type Profile = {
 };
 
 const MENU_ITEMS = [
-  { key: "history", label: "Church History" },
-  { key: "constitution", label: "Church Constitution" },
-  { key: "preachers", label: "Preacher's Guide" },
-  { key: "prayerMeetings", label: "Prayer Meetings" },
-  { key: "aboutMinistry", label: "About The Ministry" },
+  { key: "history", label: "History" },
+  { key: "constitution", label: "Constitution" },
+  { key: "preachingGuide", label: "Preaching Guide" },
+  { key: "prayerRequest", label: "Prayer Request" },
+  { key: "bibleStudy", label: "Bible Study" },
+  { key: "liveStream", label: "Live Stream" },
+  { key: "aboutMinistry", label: "About the Ministry" },
+  { key: "aboutDeveloper", label: "About the Developer" },
 ];
 
 export default function HomeScreen() {
@@ -51,7 +54,7 @@ export default function HomeScreen() {
     load();
   }, [router]);
 
-  const handleOpenDeveloper = () => {
+  const handleOpenDeveloperGitHub = () => {
     Linking.openURL("https://github.com/johnyREx");
   };
 
@@ -60,7 +63,7 @@ export default function HomeScreen() {
       case "history":
         return (
           <Text style={styles.contentText}>
-            This is where the full story and journey of End Time Prayer Global
+            This is where the full history and journey of End Time Prayer Global
             Ministry will be displayed.
           </Text>
         );
@@ -71,24 +74,46 @@ export default function HomeScreen() {
             reading and download options.
           </Text>
         );
-      case "preachers":
+      case "preachingGuide":
         return (
           <Text style={styles.contentText}>
-            This is the Preacher&apos;s Guide space for outlines, scriptures,
-            and preaching schedules.
+            This is the Preaching Guide space for outlines, scriptures, topics,
+            and schedules.
           </Text>
         );
-      case "prayerMeetings":
+      case "prayerRequest":
         return (
           <Text style={styles.contentText}>
-            Here we will show upcoming prayer meetings, days, and times.
+            Here members will submit prayer requests that reach the leadership
+            of the ministry.
+          </Text>
+        );
+      case "bibleStudy":
+        return (
+          <Text style={styles.contentText}>
+            This area will hold Bible Study plans, passages, notes, and weekly
+            themes.
+          </Text>
+        );
+      case "liveStream":
+        return (
+          <Text style={styles.contentText}>
+            This section will connect members to live streams and recorded
+            services.
           </Text>
         );
       case "aboutMinistry":
         return (
           <Text style={styles.contentText}>
-            This screen will introduce the Bishop, Rev. Sabina, and the vision
-            of the ministry.
+            This screen will introduce the Bishop, Rev. Sabina, the vision,
+            mission, and mandate of the ministry.
+          </Text>
+        );
+      case "aboutDeveloper":
+        return (
+          <Text style={styles.contentText}>
+            This screen will present Johny Rex, the developer of this app, with
+            links to GitHub, LinkedIn, and other platforms.
           </Text>
         );
       default:
@@ -181,7 +206,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <Pressable style={styles.footer} onPress={handleOpenDeveloper}>
+          <Pressable style={styles.footer} onPress={handleOpenDeveloperGitHub}>
             <Text style={styles.footerText}>
               Built with <Text style={styles.heart}>❤️</Text> by{" "}
               <Text style={styles.footerLink}>Johny Rex</Text>
@@ -287,7 +312,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   menu: {
-    width: 150,
+    width: 170,
     backgroundColor: "rgba(15,23,42,0.95)",
     borderRadius: 18,
     paddingVertical: 10,
