@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import HistorySection from "../components/HistorySection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -61,12 +62,7 @@ export default function HomeScreen() {
   const renderContent = () => {
     switch (activeKey) {
       case "history":
-        return (
-          <Text style={styles.contentText}>
-            This is where the full history and journey of End Time Prayer Global
-            Ministry will be displayed.
-          </Text>
-        );
+        return <HistorySection />
       case "constitution":
         return (
           <Text style={styles.contentText}>
