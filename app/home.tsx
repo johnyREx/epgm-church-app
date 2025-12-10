@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import HistorySection from "../components/HistorySection";
 import ConstitutionSection from "../components/ConstitutionSection";
+import PrayerRequestSection from "../components/PrayerRequestSection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -74,12 +75,7 @@ export default function HomeScreen() {
           </Text>
         );
       case "prayerRequest":
-        return (
-          <Text style={styles.contentText}>
-            Here members will submit prayer requests that reach the leadership
-            of the ministry.
-          </Text>
-        );
+        return <PrayerRequestSection />
       case "bibleStudy":
         return (
           <Text style={styles.contentText}>
