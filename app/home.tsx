@@ -12,6 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import HistorySection from "../components/HistorySection";
+import ConstitutionSection from "../components/ConstitutionSection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -64,12 +65,7 @@ export default function HomeScreen() {
       case "history":
         return <HistorySection />
       case "constitution":
-        return (
-          <Text style={styles.contentText}>
-            This section will contain the Church Constitution with smooth
-            reading and download options.
-          </Text>
-        );
+        return <ConstitutionSection />
       case "preachingGuide":
         return (
           <Text style={styles.contentText}>
