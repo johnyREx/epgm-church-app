@@ -15,6 +15,7 @@ import HistorySection from "../components/HistorySection";
 import ConstitutionSection from "../components/ConstitutionSection";
 import PrayerRequestSection from "../components/PrayerRequestSection";
 import PreachingGuideSection from "../components/PreachingGuideSection";
+import BibleStudySection from "../components/BibleStudySection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -73,12 +74,7 @@ export default function HomeScreen() {
       case "prayerRequest":
         return <PrayerRequestSection />
       case "bibleStudy":
-        return (
-          <Text style={styles.contentText}>
-            This area will hold Bible Study plans, passages, notes, and weekly
-            themes.
-          </Text>
-        );
+        return <BibleStudySection />
       case "liveStream":
         return (
           <Text style={styles.contentText}>
