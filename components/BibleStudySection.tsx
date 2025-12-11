@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 
-const EMAILJS_SERVICE_ID = "service_hwiplta";
+const EMAILJS_SERVICE_ID = "service_jfcgfsn";
 const EMAILJS_TEMPLATE_ID = "template_mo6j37g";
 const EMAILJS_PUBLIC_KEY = "_ShX81Rdy7w-NDBoz";
 const BISHOP_EMAIL = "TRIPLEKMEDIA.COM@GMAIL.COM";
