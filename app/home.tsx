@@ -17,6 +17,7 @@ import PrayerRequestSection from "../components/PrayerRequestSection";
 import PreachingGuideSection from "../components/PreachingGuideSection";
 import BibleStudySection from "../components/BibleStudySection";
 import AboutDeveloperSection from "../components/AboutDeveloperSection";
+import AboutMinistrySection from "../components/AboutMinistrySection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -84,12 +85,7 @@ export default function HomeScreen() {
           </Text>
         );
       case "aboutMinistry":
-        return (
-          <Text style={styles.contentText}>
-            This screen will introduce the Bishop, Rev. Sabina, the vision,
-            mission, and mandate of the ministry.
-          </Text>
-        );
+        return <AboutMinistrySection />
       case "aboutDeveloper":
         return <AboutDeveloperSection />
       default:
