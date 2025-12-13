@@ -16,6 +16,7 @@ import ConstitutionSection from "../components/ConstitutionSection";
 import PrayerRequestSection from "../components/PrayerRequestSection";
 import PreachingGuideSection from "../components/PreachingGuideSection";
 import BibleStudySection from "../components/BibleStudySection";
+import AboutDeveloperSection from "../components/AboutDeveloperSection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -90,12 +91,7 @@ export default function HomeScreen() {
           </Text>
         );
       case "aboutDeveloper":
-        return (
-          <Text style={styles.contentText}>
-            This screen will present Johny Rex, the developer of this app, with
-            links to GitHub, LinkedIn, and other platforms.
-          </Text>
-        );
+        return <AboutDeveloperSection />
       default:
         return null;
     }
