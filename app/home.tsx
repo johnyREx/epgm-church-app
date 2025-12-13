@@ -18,6 +18,8 @@ import PreachingGuideSection from "../components/PreachingGuideSection";
 import BibleStudySection from "../components/BibleStudySection";
 import AboutDeveloperSection from "../components/AboutDeveloperSection";
 import AboutMinistrySection from "../components/AboutMinistrySection";
+import LiveStreamSection from "../components/LiveStreamSection";
+import RadioSection from "../components/RadioSection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -34,6 +36,7 @@ const MENU_ITEMS = [
   { key: "prayerRequest", label: "Prayer Request" },
   { key: "bibleStudy", label: "Bible Study" },
   { key: "liveStream", label: "Live Stream" },
+  { key: "radio", label: "Radio" },
   { key: "aboutMinistry", label: "About the Ministry" },
   { key: "aboutDeveloper", label: "About the Developer" },
 ];
@@ -78,12 +81,9 @@ export default function HomeScreen() {
       case "bibleStudy":
         return <BibleStudySection />
       case "liveStream":
-        return (
-          <Text style={styles.contentText}>
-            This section will connect members to live streams and recorded
-            services.
-          </Text>
-        );
+        return <LiveStreamSection />
+      case "radio":
+        return <RadioSection />
       case "aboutMinistry":
         return <AboutMinistrySection />
       case "aboutDeveloper":
