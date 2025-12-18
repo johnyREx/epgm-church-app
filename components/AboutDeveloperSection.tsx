@@ -1,32 +1,47 @@
 import { View, Text, StyleSheet, Image, Pressable, Linking } from "react-native";
 
+const ICONS = {
+  github: require("../assets/images/icons/github.png"),
+  linkedin: require("../assets/images/icons/linkedin.png"),
+  whatsapp: require("../assets/images/icons/whatsapp.png"),
+  email: require("../assets/images/icons/email.png"),
+};
+
 const LINKS = [
-  { label: "GitHub", value: "johnyREx", url: "https://github.com/johnyREx" },
   {
+    key: "github",
+    label: "GitHub",
+    value: "johnyREx",
+    url: "https://github.com/johnyREx",
+    icon: ICONS.github,
+  },
+  {
+    key: "linkedin",
     label: "LinkedIn",
     value: "John Kwofie",
     url: "https://www.linkedin.com/in/john-kwofie-731960101/",
+    icon: ICONS.linkedin,
   },
-
-  // WhatsApp Ghana: 0246408195 -> +233 246 408 195
   {
+    key: "whatsappGh",
     label: "WhatsApp (Ghana)",
     value: "+233 246 408 195",
-    url: "https://wa.me/233246408196",
+    url: "https://wa.me/233246408195",
+    icon: ICONS.whatsapp,
   },
-
-  // WhatsApp Italy: 3509860825 -> +39 350 986 0825
   {
+    key: "whatsappIt",
     label: "WhatsApp (Italy)",
     value: "+39 350 986 0825",
     url: "https://wa.me/393509860825",
+    icon: ICONS.whatsapp,
   },
-
-  // Optional (delete if you don’t want email contact)
   {
+    key: "email",
     label: "Email",
     value: "Send me a message",
     url: "mailto:johnkwofie99@icloud.com?subject=EPGM%20App%20Support&body=Hello%20Johny%2C%0A%0A",
+    icon: ICONS.email,
   },
 ];
 
@@ -35,31 +50,40 @@ export default function AboutDeveloperSection() {
     try {
       const can = await Linking.canOpenURL(url);
       if (can) await Linking.openURL(url);
-      else await Linking.openURL(url); // fallback for web
-    } catch (e) {
-      // silent fail (no crash)
-    }
+      else await Linking.openURL(url);
+    } catch {}
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatarWrap}>
+      <View style={styles.hero}>
+        <View style={styles.avatarRing}>
           <Image
             source={require("../assets/images/johnyrex.jpg")}
             style={styles.avatar}
-            resizeMode="contain"
+            resizeMode="cover"
           />
         </View>
 
         <Text style={styles.name}>Johny Rex</Text>
         <Text style={styles.role}>Software Engineer · App Developer</Text>
 
+        <View style={styles.badges}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>React Native</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Expo</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Firebase</Text>
+          </View>
+        </View>
+
         <Text style={styles.statement}>
-          I build meaningful digital tools that serve communities, faith, and
-          purpose. This application was created to support the vision of End Time
-          Prayer Global Ministry by providing a simple, modern, and accessible
-          platform for members worldwide.
+          I build meaningful digital tools that serve communities, faith, and purpose.
+          This application supports the vision of End Time Prayer Global Ministry by
+          providing a simple, modern, and accessible platform for members worldwide.
         </Text>
       </View>
 
@@ -93,26 +117,34 @@ export default function AboutDeveloperSection() {
         <Text style={styles.cardTitle}>Connect</Text>
 
         {LINKS.map((item) => (
-          <Pressable
-            key={item.label}
-            onPress={() => open(item.url)}
-            style={styles.linkRow}
-          >
-            <View style={styles.linkLeft}>
-              <Text style={styles.linkLabel}>{item.label}</Text>
-              <Text style={styles.linkValue}>{item.value}</Text>
+          <Pressable key={item.key} onPress={() => open(item.url)} style={styles.linkRow}>
+            <View style={styles.linkIconWrap}>
+              <Image source={item.icon} style={styles.linkIcon} resizeMode="contain" />
             </View>
+
+            <View style={styles.linkMid}>
+              <Text style={styles.linkLabel}>{item.label}</Text>
+              <Text style={styles.linkValue} numberOfLines={1}>
+                {item.value}
+              </Text>
+            </View>
+
             <Text style={styles.linkArrow}>›</Text>
           </Pressable>
         ))}
 
-        <Text style={styles.contactNote}>
-          For quick support, WhatsApp is the best option.
-        </Text>
+        <View style={styles.tipBox}>
+          <Text style={styles.tipTitle}>Support</Text>
+          <Text style={styles.tipText}>
+            For quick support, WhatsApp is the best option.
+          </Text>
+        </View>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Built with ❤️ by Johny Rex</Text>
+        <Text style={styles.footerText}>
+          Built with <Text style={styles.heart}>❤️</Text> by Johny Rex
+        </Text>
         <Text style={styles.footerSub}>Technology in service of purpose.</Text>
       </View>
     </View>
@@ -123,19 +155,19 @@ const styles = StyleSheet.create({
   container: {
     gap: 14,
   },
-  header: {
+
+  hero: {
     alignItems: "center",
     paddingHorizontal: 10,
+    paddingTop: 6,
   },
-  avatarWrap: {
-    width: 104,
-    height: 104,
+
+  avatarRing: {
+    width: 112,
+    height: 112,
     borderRadius: 999,
-    backgroundColor: "rgba(15,23,42,0.92)",
-    borderWidth: 1.5,
-    borderColor: "rgba(250,204,21,0.55)",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 3,
+    backgroundColor: "rgba(250,204,21,0.35)",
     shadowColor: "#facc15",
     shadowOpacity: 0.6,
     shadowRadius: 14,
@@ -143,12 +175,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   avatar: {
-    width: 70,
-    height: 70,
+    width: "100%",
+    height: "100%",
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: "rgba(15,23,42,0.9)",
   },
+
   name: {
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#fefce8",
     textShadowColor: "#f59e0b",
     textShadowRadius: 6,
@@ -158,13 +194,37 @@ const styles = StyleSheet.create({
     color: "#e5e7eb",
     marginTop: 4,
   },
+
+  badges: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 10,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(2,6,23,0.35)",
+    borderWidth: 1,
+    borderColor: "rgba(250,204,21,0.25)",
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#fde68a",
+  },
+
   statement: {
-    marginTop: 12,
+    marginTop: 2,
     fontSize: 13,
     color: "#e5e7eb",
     lineHeight: 20,
     textAlign: "center",
   },
+
   card: {
     borderRadius: 20,
     padding: 16,
@@ -174,10 +234,11 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#fefce8",
     marginBottom: 10,
   },
+
   bulletRow: {
     flexDirection: "row",
     gap: 10,
@@ -197,10 +258,10 @@ const styles = StyleSheet.create({
     color: "#e5e7eb",
     lineHeight: 20,
   },
+
   linkRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -209,13 +270,29 @@ const styles = StyleSheet.create({
     borderColor: "rgba(248,250,252,0.12)",
     marginBottom: 10,
   },
-  linkLeft: {
+  linkIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: "rgba(15,23,42,0.95)",
+    borderWidth: 1,
+    borderColor: "rgba(250,204,21,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  linkIcon: {
+    width: 18,
+    height: 18,
+  },
+  linkMid: {
+    flex: 1,
     gap: 2,
   },
   linkLabel: {
     fontSize: 12,
     color: "#fde68a",
-    fontWeight: "700",
+    fontWeight: "900",
   },
   linkValue: {
     fontSize: 12,
@@ -224,23 +301,40 @@ const styles = StyleSheet.create({
   linkArrow: {
     fontSize: 20,
     color: "#fbbf24",
-    fontWeight: "700",
+    fontWeight: "900",
   },
-  contactNote: {
-    marginTop: 6,
+
+  tipBox: {
+    marginTop: 4,
+    borderRadius: 16,
+    padding: 12,
+    backgroundColor: "rgba(245,158,11,0.10)",
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.25)",
+  },
+  tipTitle: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#fef3c7",
+  },
+  tipText: {
     fontSize: 11,
-    color: "#9ca3af",
+    color: "#e5e7eb",
     lineHeight: 16,
-    textAlign: "center",
+    marginTop: 4,
   },
+
   footer: {
     alignItems: "center",
     paddingTop: 4,
   },
   footerText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#fef3c7",
+  },
+  heart: {
+    color: "#f97316",
   },
   footerSub: {
     fontSize: 11,
