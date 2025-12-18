@@ -1,163 +1,128 @@
 import { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Audio } from "expo-av";
 import { RADIO_STATIONS, RadioStation } from "../data/radioStations";
+import * as Radio from "../src/lib/RadioPlayer";
 
 export default function RadioSection() {
   const stations = useMemo(() => RADIO_STATIONS, []);
-  const [active, setActive] = useState<RadioStation | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-
   useEffect(() => {
-    // iOS needs this for background/silent mode behaviour
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      staysActiveInBackground: true,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    }).catch(() => {});
+    // keep UI in sync with global player
+    const sync = () => {
+      const s = Radio.getState();
+      setActiveId(s.active?.id ?? null);
+      setIsPlaying(s.isPlaying);
+    };
+
+    sync();
+    const unsub = Radio.subscribe(sync);
+    return unsub;
   }, []);
 
-  useEffect(() => {
-    return () => {
-      // cleanup on unmount
-      if (sound) sound.unloadAsync().catch(() => {});
-    };
-  }, [sound]);
-
-  const stop = async () => {
-    try {
-      setError(null);
-      if (sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-      }
-    } catch {}
-    setSound(null);
-    setIsPlaying(false);
-    setActive(null);
-    setLoadingId(null);
-  };
-
-  const playStation = async (station: RadioStation) => {
+  const onPlay = async (station: RadioStation) => {
     try {
       setError(null);
       setLoadingId(station.id);
-
-      // If another sound exists, unload it first
-      if (sound) {
-        await sound.stopAsync().catch(() => {});
-        await sound.unloadAsync().catch(() => {});
-        setSound(null);
-      }
-
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: station.streamUrl },
-        { shouldPlay: true }
-      );
-
-      setSound(newSound);
-      setActive(station);
-      setIsPlaying(true);
-    } catch (e) {
+      await Radio.playStation(station);
+    } catch {
       setError("Could not start the radio stream. Please try again.");
-      setActive(null);
-      setIsPlaying(false);
     } finally {
       setLoadingId(null);
     }
   };
 
-  const togglePause = async () => {
-    if (!sound) return;
+  const onToggle = async () => {
     try {
-      if (isPlaying) {
-        await sound.pauseAsync();
-        setIsPlaying(false);
-      } else {
-        await sound.playAsync();
-        setIsPlaying(true);
-      }
+      setError(null);
+      await Radio.togglePause();
     } catch {}
   };
+
+  const onStop = async () => {
+    try {
+      setError(null);
+      await Radio.stop();
+    } catch {}
+  };
+
+  const activeStation = stations.find((s) => s.id === activeId) ?? null;
 
   return (
     <View style={styles.container}>
       <View style={styles.headerBlock}>
         <Text style={styles.title}>📻 EPGM Radio</Text>
         <Text style={styles.subtitle}>
-          Choose a station and listen live. You can switch stations anytime.
+          Start a station and keep listening while you browse other pages.
         </Text>
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
+      {/* GRID */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Stations</Text>
 
-        {stations.map((s) => {
-          const selected = active?.id === s.id;
-          const loading = loadingId === s.id;
+        <View style={styles.grid}>
+          {stations.map((s) => {
+            const selected = activeId === s.id;
+            const loading = loadingId === s.id;
 
-          return (
-            <Pressable
-              key={s.id}
-              onPress={() => playStation(s)}
-              style={[
-                styles.stationRow,
-                selected && styles.stationRowActive,
-              ]}
-            >
-              <View style={styles.stationLeft}>
-                <Text style={styles.stationName}>{s.name}</Text>
-                <Text style={styles.stationHint}>
-                  {selected
-                    ? isPlaying
-                      ? "Now playing"
-                      : "Paused"
-                    : "Tap to play"}
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => onPlay(s)}
+                style={[styles.stationTile, selected && styles.stationTileActive]}
+              >
+                <Text style={styles.stationEmoji}>{selected ? "🔊" : "📡"}</Text>
+
+                <Text style={styles.stationName} numberOfLines={2}>
+                  {s.name}
                 </Text>
-              </View>
 
-              <Text style={styles.stationAction}>
-                {loading ? "..." : selected ? "⏸️/▶️" : "▶️"}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Text style={styles.stationHint}>
+                  {loading ? "Connecting..." : selected ? (isPlaying ? "Playing" : "Paused") : "Tap to play"}
+                </Text>
+
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {loading ? "…" : selected ? (isPlaying ? "⏸" : "▶️") : "▶️"}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
+      {/* PLAYER */}
       <View style={styles.playerCard}>
         <Text style={styles.playerTitle}>Now Playing</Text>
-        <Text style={styles.playerStation}>
-          {active?.name || "No station selected"}
-        </Text>
+        <Text style={styles.playerStation}>{activeStation?.name || "No station selected"}</Text>
 
         <View style={styles.playerButtons}>
           <Pressable
-            style={[styles.btn, !sound && styles.btnDisabled]}
-            onPress={togglePause}
-            disabled={!sound}
+            style={[styles.btn, !activeStation && styles.btnDisabled]}
+            onPress={onToggle}
+            disabled={!activeStation}
           >
             <Text style={styles.btnText}>{isPlaying ? "Pause" : "Play"}</Text>
           </Pressable>
 
           <Pressable
-            style={[styles.btnOutline, !sound && styles.btnDisabled]}
-            onPress={stop}
-            disabled={!sound}
+            style={[styles.btnOutline, !activeStation && styles.btnDisabled]}
+            onPress={onStop}
+            disabled={!activeStation}
           >
             <Text style={styles.btnOutlineText}>Stop</Text>
           </Pressable>
         </View>
 
         <Text style={styles.note}>
-          Tip: If a stream fails, tap the same station again to reconnect.
+          Tip: Switching tabs will NOT stop audio anymore. Use Stop to end.
         </Text>
       </View>
     </View>
@@ -174,12 +139,8 @@ const styles = StyleSheet.create({
     textShadowColor: "#f59e0b",
     textShadowRadius: 6,
   },
-  subtitle: {
-    fontSize: 13,
-    color: "#e5e7eb",
-    marginTop: 6,
-    lineHeight: 20,
-  },
+  subtitle: { fontSize: 13, color: "#e5e7eb", marginTop: 6, lineHeight: 20 },
+
   error: {
     color: "#fecaca",
     backgroundColor: "rgba(127,29,29,0.35)",
@@ -189,6 +150,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     fontSize: 12,
   },
+
   card: {
     borderRadius: 20,
     padding: 14,
@@ -196,32 +158,45 @@ const styles = StyleSheet.create({
     borderWidth: 1.25,
     borderColor: "rgba(250,204,21,0.35)",
   },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#fefce8",
-    marginBottom: 10,
-  },
-  stationRow: {
+  cardTitle: { fontSize: 14, fontWeight: "800", color: "#fefce8", marginBottom: 10 },
+
+  grid: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
     justifyContent: "space-between",
-    alignItems: "center",
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+  },
+
+  stationTile: {
+    width: "48%",
+    borderRadius: 18,
+    padding: 14,
     backgroundColor: "rgba(2,6,23,0.35)",
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.10)",
-    marginBottom: 10,
+    position: "relative",
+    minHeight: 120,
   },
-  stationRowActive: {
+  stationTileActive: {
     borderColor: "rgba(250,204,21,0.55)",
     backgroundColor: "rgba(30,41,59,0.65)",
   },
-  stationLeft: { gap: 2, flex: 1, paddingRight: 10 },
-  stationName: { fontSize: 13, fontWeight: "800", color: "#fef3c7" },
-  stationHint: { fontSize: 11, color: "#e5e7eb" },
-  stationAction: { fontSize: 16, color: "#fbbf24", fontWeight: "700" },
+  stationEmoji: { fontSize: 18, marginBottom: 8 },
+  stationName: { fontSize: 13, fontWeight: "900", color: "#fef3c7" },
+  stationHint: { fontSize: 11, color: "#e5e7eb", marginTop: 6, lineHeight: 16 },
+
+  badge: {
+    position: "absolute",
+    right: 10,
+    top: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(15,23,42,0.85)",
+    borderWidth: 1,
+    borderColor: "rgba(250,204,21,0.35)",
+  },
+  badgeText: { color: "#fbbf24", fontWeight: "900" },
 
   playerCard: {
     borderRadius: 20,
@@ -231,12 +206,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(148,163,184,0.45)",
   },
   playerTitle: { fontSize: 13, fontWeight: "800", color: "#fefce8" },
-  playerStation: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#fde68a",
-    marginTop: 6,
-  },
+  playerStation: { fontSize: 14, fontWeight: "800", color: "#fde68a", marginTop: 6 },
+
   playerButtons: { flexDirection: "row", gap: 10, marginTop: 12 },
   btn: {
     flex: 1,
@@ -258,5 +229,6 @@ const styles = StyleSheet.create({
   },
   btnOutlineText: { fontSize: 13, fontWeight: "800", color: "#fbbf24" },
   btnDisabled: { opacity: 0.6 },
+
   note: { fontSize: 11, color: "#9ca3af", marginTop: 10, lineHeight: 16 },
 });
