@@ -8,46 +8,72 @@ type MonthData = {
   verses: Record<string, string>;
 };
 
-const january = require("../data/january.json") as MonthData;
-const february = require("../data/february.json") as MonthData;
-const march = require("../data/march.json") as MonthData;
-const april = require("../data/april.json") as MonthData;
-const may = require("../data/may.json") as MonthData;
-const june = require("../data/june.json") as MonthData;
-const july = require("../data/july.json") as MonthData;
-const august = require("../data/august.json") as MonthData;
-const september = require("../data/september.json") as MonthData;
-const october = require("../data/october.json") as MonthData;
-const november = require("../data/november.json") as MonthData;
-const december = require("../data/december.json") as MonthData;
+// ===== 2025 =====
+const y2025_jan = require("../data/2025/january.json") as MonthData;
+const y2025_feb = require("../data/2025/february.json") as MonthData;
+const y2025_mar = require("../data/2025/march.json") as MonthData;
+const y2025_apr = require("../data/2025/april.json") as MonthData;
+const y2025_may = require("../data/2025/may.json") as MonthData;
+const y2025_jun = require("../data/2025/june.json") as MonthData;
+const y2025_jul = require("../data/2025/july.json") as MonthData;
+const y2025_aug = require("../data/2025/august.json") as MonthData;
+const y2025_sep = require("../data/2025/september.json") as MonthData;
+const y2025_oct = require("../data/2025/october.json") as MonthData;
+const y2025_nov = require("../data/2025/november.json") as MonthData;
+const y2025_dec = require("../data/2025/december.json") as MonthData;
+
+// ===== 2026 =====
+const y2026_jan = require("../data/2026/january.json") as MonthData;
+const y2026_feb = require("../data/2026/february.json") as MonthData;
+const y2026_mar = require("../data/2026/march.json") as MonthData;
+const y2026_apr = require("../data/2026/april.json") as MonthData;
+const y2026_may = require("../data/2026/may.json") as MonthData;
+const y2026_jun = require("../data/2026/june.json") as MonthData;
+const y2026_jul = require("../data/2026/july.json") as MonthData;
+const y2026_aug = require("../data/2026/august.json") as MonthData;
+const y2026_sep = require("../data/2026/september.json") as MonthData;
+const y2026_oct = require("../data/2026/october.json") as MonthData;
+const y2026_nov = require("../data/2026/november.json") as MonthData;
+const y2026_dec = require("../data/2026/december.json") as MonthData;
 
 const monthFiles: MonthData[] = [
-  january,
-  february,
-  march,
-  april,
-  may,
-  june,
-  july,
-  august,
-  september,
-  october,
-  november,
-  december,
+  y2025_jan,
+  y2025_feb,
+  y2025_mar,
+  y2025_apr,
+  y2025_may,
+  y2025_jun,
+  y2025_jul,
+  y2025_aug,
+  y2025_sep,
+  y2025_oct,
+  y2025_nov,
+  y2025_dec,
+
+  y2026_jan,
+  y2026_feb,
+  y2026_mar,
+  y2026_apr,
+  y2026_may,
+  y2026_jun,
+  y2026_jul,
+  y2026_aug,
+  y2026_sep,
+  y2026_oct,
+  y2026_nov,
+  y2026_dec,
 ];
 
 const preachingCalendar: Record<string, MonthData> = {};
 
 monthFiles.forEach((m) => {
   const verseKeys = Object.keys(m.verses);
-  if (verseKeys.length === 0) {
-    return;
-  }
+  if (verseKeys.length === 0) return;
+
   const firstDate = verseKeys[0];
   const parts = firstDate.split("-");
-  if (parts.length < 2) {
-    return;
-  }
+  if (parts.length < 2) return;
+
   const yearStr = parts[0];
   const monthStr = parts[1];
   const key = `${yearStr}-${monthStr}`;
@@ -115,22 +141,12 @@ export default function PreachingGuideSection() {
     for (let i = 0; i < totalCells; i++) {
       const dayNum = i - firstDayOfWeek + 1;
       if (dayNum < 1 || dayNum > daysInMonth) {
-        cells.push({
-          label: "",
-          dateKey: null,
-          hasEntry: false,
-          isToday: false,
-        });
+        cells.push({ label: "", dateKey: null, hasEntry: false, isToday: false });
       } else {
         const dateKey = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
-        const hasEntry = !!monthData?.verses[dateKey];
+        const hasEntry = !!monthData?.verses?.[dateKey];
         const isToday = dateKey === todayKey;
-        cells.push({
-          label: `${dayNum}`,
-          dateKey,
-          hasEntry,
-          isToday,
-        });
+        cells.push({ label: `${dayNum}`, dateKey, hasEntry, isToday });
       }
     }
 
@@ -138,7 +154,7 @@ export default function PreachingGuideSection() {
   }, [daysInMonth, firstDayOfWeek, month, monthData, todayKey, year]);
 
   const selectedText =
-    selectedDateKey && monthData?.verses[selectedDateKey]
+    selectedDateKey && monthData?.verses?.[selectedDateKey]
       ? monthData.verses[selectedDateKey]
       : null;
 
@@ -187,6 +203,7 @@ export default function PreachingGuideSection() {
         <Pressable onPress={handlePrevMonth} style={styles.monthArrow}>
           <Text style={styles.monthArrowText}>‹</Text>
         </Pressable>
+
         <View style={styles.monthTitleBlock}>
           <Text style={styles.monthTitle}>
             {monthNames[month]} {year}
@@ -197,6 +214,7 @@ export default function PreachingGuideSection() {
               : "No preaching guide has been added for this month yet."}
           </Text>
         </View>
+
         <Pressable onPress={handleNextMonth} style={styles.monthArrow}>
           <Text style={styles.monthArrowText}>›</Text>
         </Pressable>
@@ -231,9 +249,7 @@ export default function PreachingGuideSection() {
                 ]}
                 disabled={!cell.dateKey}
                 onPress={() => {
-                  if (cell.dateKey && cell.hasEntry) {
-                    setSelectedDateKey(cell.dateKey);
-                  }
+                  if (cell.dateKey && cell.hasEntry) setSelectedDateKey(cell.dateKey);
                 }}
               >
                 <Text
@@ -245,12 +261,9 @@ export default function PreachingGuideSection() {
                 >
                   {cell.label}
                 </Text>
-                {showDot && !isSelected && (
-                  <View style={styles.dayDot} />
-                )}
-                {showDot && isSelected && (
-                  <View style={styles.dayBar} />
-                )}
+
+                {showDot && !isSelected && <View style={styles.dayDot} />}
+                {showDot && isSelected && <View style={styles.dayBar} />}
               </Pressable>
             );
           })}
@@ -271,19 +284,16 @@ export default function PreachingGuideSection() {
 
             <View style={styles.readingCard}>
               <Text style={styles.readingTitle}>Daily Reading</Text>
-              <Text style={styles.readingText}>
-                {selectedText}
-              </Text>
+              <Text style={styles.readingText}>{selectedText}</Text>
               <Text style={styles.readingHint}>
-                Use this scripture as your meditation and prayer focus for the
-                day.
+                Use this scripture as your meditation and prayer focus for the day.
               </Text>
             </View>
           </>
         ) : monthData ? (
           <Text style={styles.detailsEmpty}>
-            Tap any marked date in the calendar to view the scripture or prayer
-            focus for that day.
+            Tap any marked date in the calendar to view the scripture or prayer focus
+            for that day.
           </Text>
         ) : (
           <Text style={styles.detailsEmpty}>
@@ -296,9 +306,7 @@ export default function PreachingGuideSection() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-  },
+  container: { gap: 12 },
   title: {
     fontSize: 18,
     fontWeight: "700",
@@ -327,24 +335,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.18)",
   },
-  monthArrowText: {
-    color: "#fefce8",
-    fontSize: 18,
-  },
-  monthTitleBlock: {
-    flex: 1,
-    marginHorizontal: 10,
-  },
-  monthTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#fefce8",
-  },
-  themeText: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#fde68a",
-  },
+  monthArrowText: { color: "#fefce8", fontSize: 18 },
+  monthTitleBlock: { flex: 1, marginHorizontal: 10 },
+  monthTitle: { fontSize: 20, fontWeight: "800", color: "#fefce8" },
+  themeText: { marginTop: 2, fontSize: 12, color: "#fde68a" },
   calendarCard: {
     borderRadius: 24,
     backgroundColor: "rgba(15,23,42,0.96)",
@@ -369,52 +363,15 @@ const styles = StyleSheet.create({
     color: "#cbd5f5",
     fontWeight: "600",
   },
-  daysGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 6,
-  },
-  dayCell: {
-    width: `${100 / 7}%`,
-    aspectRatio: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dayToday: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(248,250,252,0.4)",
-  },
-  daySelected: {
-    borderRadius: 16,
-    backgroundColor: "#f97316",
-  },
-  dayLabel: {
-    fontSize: 14,
-    color: "#9ca3af",
-    marginBottom: 3,
-  },
-  dayLabelWithEntry: {
-    color: "#e5e7eb",
-    fontWeight: "600",
-  },
-  dayLabelSelected: {
-    color: "#0b1120",
-    fontWeight: "800",
-  },
-  dayDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#facc15",
-  },
-  dayBar: {
-    marginTop: 2,
-    width: 20,
-    height: 4,
-    borderRadius: 999,
-    backgroundColor: "#0b1120",
-  },
+  daysGrid: { flexDirection: "row", flexWrap: "wrap", marginTop: 6 },
+  dayCell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: "center", justifyContent: "center" },
+  dayToday: { borderRadius: 16, borderWidth: 1, borderColor: "rgba(248,250,252,0.4)" },
+  daySelected: { borderRadius: 16, backgroundColor: "#f97316" },
+  dayLabel: { fontSize: 14, color: "#9ca3af", marginBottom: 3 },
+  dayLabelWithEntry: { color: "#e5e7eb", fontWeight: "600" },
+  dayLabelSelected: { color: "#0b1120", fontWeight: "800" },
+  dayDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#facc15" },
+  dayBar: { marginTop: 2, width: 20, height: 4, borderRadius: 999, backgroundColor: "#0b1120" },
   detailsWrapper: {
     marginTop: 10,
     borderRadius: 20,
@@ -422,10 +379,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
   },
-  detailsContent: {
-    padding: 12,
-    gap: 10,
-  },
+  detailsContent: { padding: 12, gap: 10 },
   highlightCard: {
     borderRadius: 18,
     padding: 12,
@@ -437,17 +391,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
   },
-  highlightDate: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#fefce8",
-    marginBottom: 4,
-  },
-  highlightText: {
-    fontSize: 14,
-    color: "#0b1120",
-    fontWeight: "600",
-  },
+  highlightDate: { fontSize: 13, fontWeight: "700", color: "#fefce8", marginBottom: 4 },
+  highlightText: { fontSize: 14, color: "#0b1120", fontWeight: "600" },
   readingCard: {
     borderRadius: 16,
     padding: 12,
@@ -455,26 +400,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.6)",
   },
-  readingTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#e5e7eb",
-    marginBottom: 4,
-  },
-  readingText: {
-    fontSize: 14,
-    color: "#e5e7eb",
-    lineHeight: 22,
-    marginBottom: 6,
-  },
-  readingHint: {
-    fontSize: 12,
-    color: "#9ca3af",
-    lineHeight: 18,
-  },
-  detailsEmpty: {
-    fontSize: 13,
-    color: "#9ca3af",
-    lineHeight: 20,
-  },
+  readingTitle: { fontSize: 13, fontWeight: "700", color: "#e5e7eb", marginBottom: 4 },
+  readingText: { fontSize: 14, color: "#e5e7eb", lineHeight: 22, marginBottom: 6 },
+  readingHint: { fontSize: 12, color: "#9ca3af", lineHeight: 18 },
+  detailsEmpty: { fontSize: 13, color: "#9ca3af", lineHeight: 20 },
 });
