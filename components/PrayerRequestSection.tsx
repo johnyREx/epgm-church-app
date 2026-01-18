@@ -9,14 +9,11 @@ import {
   Linking,
 } from "react-native";
 
-const EMAILJS_SERVICE_ID = "service_jfcgfsn";
-const EMAILJS_TEMPLATE_ID = "template_mo6j37g";
-const EMAILJS_PUBLIC_KEY = "_ShX81Rdy7w-NDBoz";
+const PRAYER_ENDPOINT =
+  "https://script.google.com/macros/s/AKfycbwqTKVlhZYggLnKJC75g-FWtHgqL8kxKidjipIfEZdotMTF-2ZDRmkWuphXpPNe3NvEOw/exec";
 
-const BISHOP_EMAIL = "TRIPLEKMEDIA.COM@GMAIL.COM";
-
-const WHATSAPP_NUMBER_1 = "+393895403600";
-const WHATSAPP_NUMBER_2 = "+233248490953";
+const WHATSAPP_NUMBER_1 = "393895403600";
+const WHATSAPP_NUMBER_2 = "233248490953";
 
 type Props = {
   defaultName?: string;
@@ -52,7 +49,6 @@ export default function PrayerRequestSection({ defaultName }: Props) {
     const cleanTopic = topic.trim();
     const cleanMessage = message.trim();
 
-    const subject = `Prayer Request - ${cleanTopic}`;
     const bodyLines = [
       `Name: ${cleanName}`,
       cleanEmail ? `Email: ${cleanEmail}` : "Email: (not provided)",
@@ -68,70 +64,42 @@ export default function PrayerRequestSection({ defaultName }: Props) {
     const body = bodyLines.join("\n");
 
     try {
-      // 🔍 DEBUG: Sending EmailJS request
-      console.log("📨 Sending EmailJS Request...");
+      const res = await fetch(PRAYER_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: cleanName,
+          email: cleanEmail,
+          topic: cleanTopic,
+          message: cleanMessage,
+        }),
+      });
 
-      const emailResponse = await fetch(
-        "https://api.emailjs.com/api/v1.0/email/send",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            service_id: EMAILJS_SERVICE_ID,
-            template_id: EMAILJS_TEMPLATE_ID,
-            user_id: EMAILJS_PUBLIC_KEY,
-            template_params: {
-              to_email: BISHOP_EMAIL,
-              subject,
-              body,
-              name: cleanName,
-              email: cleanEmail || "(not provided)",
-              topic: cleanTopic,
-              message: cleanMessage,
-            },
-          }),
-        }
-      );
+      const data = await res.json().catch(() => null);
 
-      const rawResponse = await emailResponse.text();
-
-      console.log("📨 EMAILJS STATUS:", emailResponse.status);
-      console.log("📨 EMAILJS RAW RESPONSE:", rawResponse);
-
-      if (!emailResponse.ok) {
-        throw new Error("EmailJS request failed: " + rawResponse);
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "Submission failed");
       }
 
-      // Continue to WhatsApp
       const encodedWhatsAppText = encodeURIComponent(body);
+      const waUrl1 = `https://wa.me/${WHATSAPP_NUMBER_1}?text=${encodedWhatsAppText}`;
+      const waUrl2 = `https://wa.me/${WHATSAPP_NUMBER_2}?text=${encodedWhatsAppText}`;
 
-      const waUrl1 = `whatsapp://send?phone=${WHATSAPP_NUMBER_1}&text=${encodedWhatsAppText}`;
-      const waUrl2 = `whatsapp://send?phone=${WHATSAPP_NUMBER_2}&text=${encodedWhatsAppText}`;
+      Linking.openURL(waUrl1).catch(() => {});
 
-      const canWa1 = await Linking.canOpenURL(waUrl1);
-      if (canWa1) {
-        await Linking.openURL(waUrl1);
-      }
-
-      setTimeout(async () => {
-        const canWa2 = await Linking.canOpenURL(waUrl2);
-        if (canWa2) {
-          await Linking.openURL(waUrl2);
-        }
+      setTimeout(() => {
+        Linking.openURL(waUrl2).catch(() => {});
       }, 800);
 
       Alert.alert("Prayer Request Sent", "Your request was successfully sent.");
 
-      // Reset fields
+      setEmail("");
       setTopic("");
       setMessage("");
-    } catch (e: any) {
-      console.log("❌ EMAILJS ERROR:", e);
+    } catch (e) {
       Alert.alert(
         "Error",
-        "There was a problem sending your prayer request. Please check your EmailJS keys or internet connection."
+        "There was a problem sending your prayer request. Please check your internet connection and try again."
       );
     } finally {
       setSubmitting(false);
@@ -198,10 +166,7 @@ export default function PrayerRequestSection({ defaultName }: Props) {
       <Pressable
         onPress={handleSubmit}
         disabled={submitting}
-        style={[
-          styles.submitButton,
-          submitting && styles.submitButtonDisabled,
-        ]}
+        style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
       >
         <Text style={styles.submitText}>
           {submitting ? "Sending..." : "Send Prayer Request"}
@@ -210,8 +175,8 @@ export default function PrayerRequestSection({ defaultName }: Props) {
 
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>
-          Your request will be emailed and prepared for both WhatsApp prayer
-          lines.
+          Your request will be emailed to the ministry and opened for WhatsApp
+          prayer lines.
         </Text>
       </View>
     </View>
