@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,106 +7,216 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  Image,
+  Platform,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
-const EMAILJS_SERVICE_ID = "service_jfcgfsn";
-const EMAILJS_TEMPLATE_ID = "template_mo6j37g";
-const EMAILJS_PUBLIC_KEY = "_ShX81Rdy7w-NDBoz";
-const BISHOP_EMAIL = "TRIPLEKMEDIA.COM@GMAIL.COM";
+const GOOGLE_BIBLE_PAYMENTS_URL =
+  "https://script.google.com/macros/s/AKfycbwqTKVlhZYggLnKJC75g-FWtHgqL8kxKidjipIfEZdotMTF-2ZDRmkWuphXpPNe3NvEOw/exec";
+
+// ✅ Payment constants
+const PAYMENT_AMOUNT_EUR = 10;
+const PAYMENT_AMOUNT_GHS = 150;
+
+const PAYPAL_EMAIL = "benjaminadu2005@gmail.com";
+// Put your PayPal.me when you create it (recommended)
+const PAYPAL_ME_LINK = "https://paypal.me/YOURPAYPALME"; // replace
+
+const MOMO_NETWORK = "MTN";
+const MOMO_NUMBER = "0248490953";
+const MOMO_ACCOUNT_NAME = "Peter Ababio";
 
 const CLASS_TYPES = ["Online", "In-person", "Hybrid"] as const;
 const LANGUAGES = ["English", "Twi", "English + Twi"] as const;
-const PAYMENT_METHODS = ["PayPal", "Card (Visa/Mastercard)", "Mobile Money"] as const;
+const PAYMENT_METHODS = ["Mobile Money", "PayPal"] as const;
+
+type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export default function BibleStudySection() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [location, setLocation] = useState("");
-  const [classType, setClassType] = useState<(typeof CLASS_TYPES)[number]>("Online");
-  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]>("English");
+  const [classType, setClassType] =
+    useState<(typeof CLASS_TYPES)[number]>("Online");
+  const [language, setLanguage] =
+    useState<(typeof LANGUAGES)[number]>("English");
   const [paymentMethod, setPaymentMethod] =
-    useState<(typeof PAYMENT_METHODS)[number]>("Mobile Money");
+    useState<PaymentMethod>("Mobile Money");
   const [motivation, setMotivation] = useState("");
+
+  const [proofUri, setProofUri] = useState<string | null>(null);
+  const [proofBase64, setProofBase64] = useState<string | null>(null);
+  const [proofMime, setProofMime] = useState<string>("image/jpeg");
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
+  const momoInstructions = useMemo(
+    () => [
+      "• Dial *170#",
+      "• Choose Transfer Money",
+      "• Mobile Money User",
+      `• Enter number: ${MOMO_NUMBER}`,
+      `• Name: ${MOMO_ACCOUNT_NAME}`,
+      `• Amount: ${PAYMENT_AMOUNT_GHS} GHS (equivalent of €${PAYMENT_AMOUNT_EUR})`,
+      `• Reference: Bible School - (your name)`,
+      "• Confirm and complete payment",
+      "• Take a screenshot of the confirmation message",
+      "• Upload it below and submit your form",
+    ],
+    []
+  );
+
+  const openPayPal = async () => {
+    try {
+      // If you haven't added PayPal.me yet, still show info
+      if (!PAYPAL_ME_LINK || PAYPAL_ME_LINK.includes("YOURPAYPALME")) {
+        Alert.alert(
+          "PayPal Setup Needed",
+          `Please create your PayPal.me link.\nFor now you can pay via PayPal email:\n${PAYPAL_EMAIL}`
+        );
+        return;
+      }
+
+      await WebBrowser.openBrowserAsync(PAYPAL_ME_LINK, {
+        presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+      });
+    } catch {}
+  };
+
+  const pickProof = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(
+          "Permission needed",
+          "Please allow access to photos to upload proof."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+        base64: true,
+      });
+
+      if (result.canceled) return;
+
+      const asset = result.assets[0];
+
+      // ✅ compress + resize (prevents Google Script upload failures)
+      const manipulated = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [{ resize: { width: 1280 } }],
+        {
+          compress: 0.6,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        }
+      );
+
+      setProofUri(manipulated.uri);
+      setProofBase64(manipulated.base64 || null);
+      setProofMime("image/jpeg");
+    } catch {
+      Alert.alert("Error", "Could not pick image. Please try again.");
+    }
+  };
+
+  const validate = () => {
     const cleanName = fullName.trim();
     const cleanPhone = phone.trim();
-    const cleanEmail = email.trim();
-    const cleanLocation = location.trim();
     const cleanMotivation = motivation.trim();
 
-    if (!cleanName) {
-      setError("Please enter your full name.");
-      return;
+    if (!cleanName) return "Please enter your full name.";
+    if (!cleanPhone) return "Please enter your phone or WhatsApp number.";
+    if (!cleanMotivation)
+      return "Please tell us briefly why you want to join the Bible School.";
+    if (!proofBase64) return "Please upload a payment proof screenshot.";
+    return "";
+  };
+
+  const postToGoogle = async (payload: any) => {
+    // ✅ WEB: prevent CORS blocking
+    if (Platform.OS === "web") {
+      await fetch(GOOGLE_BIBLE_PAYMENTS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return { ok: true };
     }
-    if (!cleanPhone) {
-      setError("Please enter your phone or WhatsApp number.");
-      return;
-    }
-    if (!cleanMotivation) {
-      setError("Please tell us briefly why you want to join the Bible School.");
-      return;
-    }
-    if (!paymentMethod) {
-      setError("Please select a payment method.");
+
+    // ✅ NATIVE: normal fetch
+    const res = await fetch(GOOGLE_BIBLE_PAYMENTS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {}
+
+    if (!res.ok) throw new Error(text || "Request failed");
+    if (json && json.ok === false) throw new Error(json.error || "Submit failed");
+    return json || { ok: true };
+  };
+
+  const handleSubmit = async () => {
+    const v = validate();
+    if (v) {
+      setError(v);
       return;
     }
 
     setError("");
     setSubmitting(true);
 
-    const subject = `Bible School Enrollment - ${cleanName}`;
-    const bodyLines = [
-      "EPGM Bible School Enrollment Request",
-      "",
-      `Name: ${cleanName}`,
-      `Phone/WhatsApp: ${cleanPhone}`,
-      cleanEmail ? `Email: ${cleanEmail}` : "Email: (not provided)",
-      cleanLocation ? `City/Country: ${cleanLocation}` : "City/Country: (not provided)",
-      `Preferred Class Type: ${classType}`,
-      `Preferred Language: ${language}`,
-      `Payment Method: ${paymentMethod}`,
-      "",
-      "Motivation:",
-      cleanMotivation,
-      "",
-      "Sent via EPGM Church App – Bible School section.",
-    ];
-    const body = bodyLines.join("\n");
+    const payload = {
+      type: "BIBLE_SCHOOL_ENROLLMENT",
+      createdAt: new Date().toISOString(),
+
+      amountEuro: PAYMENT_AMOUNT_EUR,
+      amountGhs: PAYMENT_AMOUNT_GHS,
+      paymentMethod,
+
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+      email: email.trim() || "",
+      location: location.trim() || "",
+      classType,
+      language,
+      motivation: motivation.trim(),
+
+      momoNetwork: MOMO_NETWORK,
+      momoNumber: MOMO_NUMBER,
+      momoAccountName: MOMO_ACCOUNT_NAME,
+      momoReferenceSuggested: `Bible School - ${fullName.trim()}`,
+
+      paypalEmail: PAYPAL_EMAIL,
+      paypalMeLink: PAYPAL_ME_LINK,
+
+      proofMime,
+      proofBase64,
+      proofFileName: `payment-proof-${Date.now()}.jpg`,
+    };
 
     try {
-      const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          service_id: EMAILJS_SERVICE_ID,
-          template_id: EMAILJS_TEMPLATE_ID,
-          user_id: EMAILJS_PUBLIC_KEY,
-          template_params: {
-            to_email: BISHOP_EMAIL,
-            subject,
-            body,
-            name: cleanName,
-            email: cleanEmail || "(not provided)",
-            topic: "Bible School Enrollment",
-            message: cleanMotivation,
-          },
-        }),
-      });
-
-      const raw = await response.text();
-      if (!response.ok) {
-        throw new Error(raw || "EmailJS request failed");
-      }
+      await postToGoogle(payload);
 
       Alert.alert(
-        "Enrollment Sent",
-        "Your Bible School enrollment details have been sent. The ministry will contact you with payment instructions."
+        "Submitted",
+        "Your enrollment and payment proof have been submitted successfully."
       );
 
       setFullName("");
@@ -114,14 +224,13 @@ export default function BibleStudySection() {
       setEmail("");
       setLocation("");
       setMotivation("");
+      setPaymentMethod("Mobile Money");
       setClassType("Online");
       setLanguage("English");
-      setPaymentMethod("Mobile Money");
-    } catch (e) {
-      Alert.alert(
-        "Error",
-        "There was a problem sending your enrollment. Please check your internet connection and try again."
-      );
+      setProofUri(null);
+      setProofBase64(null);
+    } catch (e: any) {
+      Alert.alert("Error", e?.message || "Could not submit. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -135,7 +244,9 @@ export default function BibleStudySection() {
     >
       <Text style={styles.title}>EPGM Bible School</Text>
       <Text style={styles.subtitle}>
-        Enroll to be trained in the Word, doctrine and ministry work under EPGM–BPAM.
+        Enrollment fee: <Text style={styles.money}>€{PAYMENT_AMOUNT_EUR}</Text> (≈{" "}
+        <Text style={styles.money}>{PAYMENT_AMOUNT_GHS} GHS</Text>). Choose a payment
+        method, pay, then upload proof and submit.
       </Text>
 
       <View style={styles.section}>
@@ -202,7 +313,9 @@ export default function BibleStudySection() {
                 onPress={() => setClassType(type)}
                 style={[styles.chip, selected && styles.chipSelected]}
               >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                <Text
+                  style={[styles.chipText, selected && styles.chipTextSelected]}
+                >
                   {type}
                 </Text>
               </Pressable>
@@ -210,7 +323,9 @@ export default function BibleStudySection() {
           })}
         </View>
 
-        <Text style={[styles.labelSmall, { marginTop: 8 }]}>Preferred Language</Text>
+        <Text style={[styles.labelSmall, { marginTop: 8 }]}>
+          Preferred Language
+        </Text>
         <View style={styles.chipRow}>
           {LANGUAGES.map((lang) => {
             const selected = language === lang;
@@ -220,7 +335,9 @@ export default function BibleStudySection() {
                 onPress={() => setLanguage(lang)}
                 style={[styles.chip, selected && styles.chipSelected]}
               >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                <Text
+                  style={[styles.chipText, selected && styles.chipTextSelected]}
+                >
                   {lang}
                 </Text>
               </Pressable>
@@ -230,36 +347,85 @@ export default function BibleStudySection() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Payment Intention</Text>
+        <Text style={styles.sectionHeader}>Payment</Text>
 
-        <Text style={styles.labelSmall}>Preferred Payment Method</Text>
-        <View style={styles.chipColumn}>
-          {PAYMENT_METHODS.map((method) => {
-            const selected = paymentMethod === method;
+        <Text style={styles.labelSmall}>Choose Method</Text>
+        <View style={styles.chipRow}>
+          {PAYMENT_METHODS.map((m) => {
+            const selected = paymentMethod === m;
             return (
               <Pressable
-                key={method}
-                onPress={() => setPaymentMethod(method)}
-                style={[styles.chipWide, selected && styles.chipSelected]}
+                key={m}
+                onPress={() => setPaymentMethod(m)}
+                style={[styles.chip, selected && styles.chipSelected]}
               >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                  {method}
+                <Text
+                  style={[styles.chipText, selected && styles.chipTextSelected]}
+                >
+                  {m}
                 </Text>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.paymentNote}>
-          At this stage, payments are handled directly by the ministry. After you submit,
-          the Bible School team will contact you with the exact fee and payment details
-          for PayPal, card or mobile money.
-        </Text>
+        <View style={styles.card}>
+          {paymentMethod === "Mobile Money" ? (
+            <>
+              <Text style={styles.cardTitle}>MTN Mobile Money</Text>
+              <Text style={styles.cardLine}>Number: {MOMO_NUMBER}</Text>
+              <Text style={styles.cardLine}>Name: {MOMO_ACCOUNT_NAME}</Text>
+              <Text style={styles.cardLine}>
+                Amount: {PAYMENT_AMOUNT_GHS} GHS (≈ €{PAYMENT_AMOUNT_EUR})
+              </Text>
+              <Text style={styles.cardLine}>
+                Reference: Bible School - (your name)
+              </Text>
+
+              <View style={styles.instructions}>
+                {momoInstructions.map((x) => (
+                  <Text key={x} style={styles.instructionText}>
+                    {x}
+                  </Text>
+                ))}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.cardTitle}>PayPal Payment</Text>
+              <Text style={styles.cardLine}>
+                Amount: €{PAYMENT_AMOUNT_EUR}
+              </Text>
+              <Text style={styles.cardLine}>
+                PayPal email: {PAYPAL_EMAIL}
+              </Text>
+              <Text style={styles.cardLine}>
+                Tap below to open PayPal. After payment, return and upload proof.
+              </Text>
+
+              <Pressable style={styles.payBtn} onPress={openPayPal}>
+                <Text style={styles.payBtnText}>Open PayPal</Text>
+              </Pressable>
+            </>
+          )}
+
+          <Pressable style={styles.proofBtn} onPress={pickProof}>
+            <Text style={styles.proofBtnText}>
+              {proofUri ? "Change Payment Screenshot" : "Upload Payment Screenshot"}
+            </Text>
+          </Pressable>
+
+          {proofUri ? (
+            <Image source={{ uri: proofUri }} style={styles.preview} />
+          ) : null}
+        </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionHeader}>Motivation</Text>
-        <Text style={styles.labelSmall}>Why do you want to join the Bible School?</Text>
+        <Text style={styles.labelSmall}>
+          Why do you want to join the Bible School?
+        </Text>
         <TextInput
           value={motivation}
           onChangeText={setMotivation}
@@ -283,9 +449,8 @@ export default function BibleStudySection() {
       </Pressable>
 
       <Text style={styles.footerNote}>
-        By submitting this form you confirm that you are willing to be trained under the
-        doctrines and leadership of End Time Prayer Global Ministry – Bishop Peter Ababio
-        Ministries.
+        By submitting you confirm you are willing to be trained under the doctrines and
+        leadership of End Time Prayer Global Ministry – Bishop Peter Ababio Ministries.
       </Text>
     </ScrollView>
   );
@@ -315,6 +480,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#e5e7eb",
     lineHeight: 20,
+  },
+  money: {
+    color: "#fde68a",
+    fontWeight: "800",
   },
   section: {
     marginTop: 8,
@@ -356,21 +525,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
   },
-  chipColumn: {
-    gap: 8,
-    marginTop: 4,
-  },
   chip: {
     borderRadius: 999,
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.7)",
-    backgroundColor: "rgba(15,23,42,0.9)",
-  },
-  chipWide: {
-    borderRadius: 999,
-    paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.7)",
@@ -388,11 +545,64 @@ const styles = StyleSheet.create({
     color: "#fbbf24",
     fontWeight: "600",
   },
-  paymentNote: {
+  card: {
+    borderRadius: 18,
+    padding: 12,
+    backgroundColor: "rgba(2,6,23,0.35)",
+    borderWidth: 1,
+    borderColor: "rgba(250,204,21,0.25)",
+    gap: 8,
+    marginTop: 6,
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#fde68a",
+  },
+  cardLine: {
+    fontSize: 12,
+    color: "#e5e7eb",
+    lineHeight: 18,
+  },
+  instructions: {
+    gap: 3,
+    marginTop: 4,
+  },
+  instructionText: {
     fontSize: 12,
     color: "#9ca3af",
     lineHeight: 18,
-    marginTop: 4,
+  },
+  payBtn: {
+    marginTop: 6,
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: "center",
+    backgroundColor: "#f97316",
+  },
+  payBtnText: {
+    color: "#0b1120",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  proofBtn: {
+    marginTop: 6,
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#f97316",
+  },
+  proofBtnText: {
+    color: "#fbbf24",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  preview: {
+    width: "100%",
+    height: 180,
+    borderRadius: 14,
+    marginTop: 6,
   },
   errorText: {
     fontSize: 12,
