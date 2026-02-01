@@ -20,6 +20,7 @@ import AboutDeveloperSection from "../components/AboutDeveloperSection";
 import AboutMinistrySection from "../components/AboutMinistrySection";
 import LiveStreamSection from "../components/LiveStreamSection";
 import RadioSection from "../components/RadioSection";
+import ContactSection from "../components/ContactSection";
 
 const PROFILE_KEY = "epgm_profile";
 
@@ -38,6 +39,7 @@ const MENU_ITEMS = [
   { key: "liveStream", label: "Live Stream" },
   { key: "radio", label: "Radio" },
   { key: "aboutMinistry", label: "About the Ministry" },
+  { key: "contact", label: "Locations & Contacts" },
   { key: "aboutDeveloper", label: "About the Developer" },
 ];
 
@@ -86,6 +88,8 @@ export default function HomeScreen() {
         return <RadioSection />
       case "aboutMinistry":
         return <AboutMinistrySection />
+      case "contact":
+        return <ContactSection />;
       case "aboutDeveloper":
         return <AboutDeveloperSection />
       default:
