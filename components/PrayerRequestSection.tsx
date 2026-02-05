@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
   Linking,
+  Platform,
 } from "react-native";
 
 const PRAYER_ENDPOINT =
@@ -28,18 +29,9 @@ export default function PrayerRequestSection({ defaultName }: Props) {
   const [error, setError] = useState("");
 
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      setError("Please enter your name.");
-      return;
-    }
-    if (!topic.trim()) {
-      setError("Please enter a prayer topic.");
-      return;
-    }
-    if (!message.trim()) {
-      setError("Please write your prayer request.");
-      return;
-    }
+    if (!name.trim()) return setError("Please enter your name.");
+    if (!topic.trim()) return setError("Please enter a prayer topic.");
+    if (!message.trim()) return setError("Please write your prayer request.");
 
     setError("");
     setSubmitting(true);
@@ -64,29 +56,50 @@ export default function PrayerRequestSection({ defaultName }: Props) {
     const body = bodyLines.join("\n");
 
     try {
+      const payload = {
+        type: "PRAYER_REQUEST", // ✅ REQUIRED by your Apps Script router
+        name: cleanName,
+        email: cleanEmail,
+        topic: cleanTopic,
+        message: cleanMessage,
+      };
+
+      // ✅ Avoid CORS preflight on web by using text/plain
+      const contentType =
+        Platform.OS === "web"
+          ? "text/plain;charset=utf-8"
+          : "application/json";
+
       const res = await fetch(PRAYER_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: cleanName,
-          email: cleanEmail,
-          topic: cleanTopic,
-          message: cleanMessage,
-        }),
+        headers: { "Content-Type": contentType },
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => null);
+      const raw = await res.text();
+      console.log("🌍 PRAYER STATUS:", res.status);
+      console.log("🌍 PRAYER RAW:", raw);
 
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "Submission failed");
+      let data: any = null;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        // If it isn't JSON, show it so we can diagnose
       }
 
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${raw}`);
+      }
+      if (data?.ok !== true) {
+        throw new Error(data?.error || "Submission failed (ok:false)");
+      }
+
+      // WhatsApp
       const encodedWhatsAppText = encodeURIComponent(body);
       const waUrl1 = `https://wa.me/${WHATSAPP_NUMBER_1}?text=${encodedWhatsAppText}`;
       const waUrl2 = `https://wa.me/${WHATSAPP_NUMBER_2}?text=${encodedWhatsAppText}`;
 
       Linking.openURL(waUrl1).catch(() => {});
-
       setTimeout(() => {
         Linking.openURL(waUrl2).catch(() => {});
       }, 800);
@@ -96,10 +109,12 @@ export default function PrayerRequestSection({ defaultName }: Props) {
       setEmail("");
       setTopic("");
       setMessage("");
-    } catch (e) {
+    } catch (e: any) {
+      console.log("❌ PRAYER SUBMIT ERROR:", e?.message || e);
       Alert.alert(
         "Error",
-        "There was a problem sending your prayer request. Please check your internet connection and try again."
+        e?.message ||
+          "There was a problem sending your prayer request. Please check your internet connection and try again."
       );
     } finally {
       setSubmitting(false);
@@ -184,9 +199,7 @@ export default function PrayerRequestSection({ defaultName }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-  },
+  container: { gap: 12 },
   title: {
     fontSize: 18,
     fontWeight: "700",
@@ -202,14 +215,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 8,
   },
-  fieldGroup: {
-    marginTop: 4,
-  },
-  label: {
-    fontSize: 12,
-    color: "#e5e7eb",
-    marginBottom: 4,
-  },
+  fieldGroup: { marginTop: 4 },
+  label: { fontSize: 12, color: "#e5e7eb", marginBottom: 4 },
   input: {
     borderRadius: 12,
     borderWidth: 1,
@@ -220,15 +227,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15,23,42,0.8)",
     fontSize: 14,
   },
-  textArea: {
-    minHeight: 110,
-    textAlignVertical: "top",
-  },
-  errorText: {
-    fontSize: 12,
-    color: "#fecaca",
-    marginTop: 4,
-  },
+  textArea: { minHeight: 110, textAlignVertical: "top" },
+  errorText: { fontSize: 12, color: "#fecaca", marginTop: 4 },
   submitButton: {
     marginTop: 10,
     backgroundColor: "#f97316",
@@ -236,14 +236,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-  submitButtonDisabled: {
-    opacity: 0.7,
-  },
-  submitText: {
-    color: "#0b1120",
-    fontSize: 15,
-    fontWeight: "700",
-  },
+  submitButtonDisabled: { opacity: 0.7 },
+  submitText: { color: "#0b1120", fontSize: 15, fontWeight: "700" },
   infoBox: {
     marginTop: 8,
     borderRadius: 12,
@@ -252,9 +246,5 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "rgba(250,204,21,0.06)",
   },
-  infoText: {
-    fontSize: 12,
-    color: "#e5e7eb",
-    lineHeight: 18,
-  },
+  infoText: { fontSize: 12, color: "#e5e7eb", lineHeight: 18 },
 });
