@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image } from "react-native";
 
 export default function HistorySection() {
   const fullText =
-    "To God be the glory. End Time Prayer Global Ministry was started on Sunday 25th May 2014. E.P.G.M. began on Accra24.com Radio Germany and later on True Gospel Radio Italy. On 21st November 2016, by the grace of God, the ministry was planted at Spilamberto Commune, Piazza Caduti Libertà 3. The first congregation was seven people, three adults and four children. Jesus Christ is the builder of the Church (Matthew 16:18). We thank God for End Time Prayer Global Ministry.";
+    "To God be the glory. Bishop Peter Ababio Ministry was started on Sunday 25th May 2014. E.P.G.M. began on Accra24.com Radio Germany and later on True Gospel Radio Italy. On 21st November 2016, by the grace of God, the ministry was planted at Spilamberto Commune, Piazza Caduti Libertà 3. The first congregation was seven people, three adults and four children. Jesus Christ is the builder of the Church (Matthew 16:18). We thank God for End Time Prayer Global Ministry.";
 
   const [visibleText, setVisibleText] = useState("");
 
@@ -53,7 +53,7 @@ export default function HistorySection() {
       <View style={styles.card}>
         <Text style={styles.heading}>The Birth of the Ministry</Text>
         <Text style={styles.subheading}>
-          End Time Prayer Global Ministry (E.P.G.M)
+          Bishop Peter Ababio Ministries (B.P.A.M)
         </Text>
         <Text style={styles.body}>{visibleText}</Text>
       </View>

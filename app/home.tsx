@@ -113,9 +113,9 @@ export default function HomeScreen() {
                 resizeMode="contain"
               />
               <View>
-                <Text style={styles.headerTitle}>EPGM Church App</Text>
+                <Text style={styles.headerTitle}>BPAM Church App</Text>
                 <Text style={styles.headerSubtitle}>
-                  End Time Prayer Global Ministry
+                  Bishop Peter Ababio Ministries
                 </Text>
               </View>
             </View>

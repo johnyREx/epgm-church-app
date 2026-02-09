@@ -61,13 +61,16 @@ export default function OnboardingScreen() {
       setError("Please accept the terms and conditions.");
       return;
     }
+
     setError("");
     setSubmitting(true);
+
     const profile: Profile = {
       name: name.trim(),
       about: about.trim(),
       avatar,
     };
+
     try {
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
       router.replace("/home");
@@ -96,22 +99,30 @@ export default function OnboardingScreen() {
     >
       <View style={styles.overlay}>
         <View style={styles.content}>
+          {/* ===== HEADER ===== */}
           <View style={styles.headerBlock}>
             <Image
               source={require("../assets/images/logo.png")}
               style={styles.logo}
               resizeMode="contain"
             />
+
+            <Text style={styles.welcome}>WELCOME TO</Text>
+
             <Text style={styles.title}>
-              END TIME PRAYER GLOBAL MINISTRIES
-            </Text>
-            <Text style={styles.subtitle}>
               BISHOP PETER ABABIO MINISTRIES
+            </Text>
+
+            <Text style={styles.subtitle}>
+              End Time Prayer Global Ministry
             </Text>
           </View>
 
+          {/* ===== FORM ===== */}
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Create Your EPGM Profile</Text>
+            <Text style={styles.formTitle}>
+              Create Your Ministry Profile
+            </Text>
 
             <Text style={styles.label}>Name</Text>
             <TextInput
@@ -179,6 +190,7 @@ export default function OnboardingScreen() {
             </Pressable>
           </View>
 
+          {/* ===== FOOTER ===== */}
           <Pressable style={styles.footer} onPress={handleOpenDeveloper}>
             <Text style={styles.footerText}>
               Built with <Text style={styles.heart}>❤️</Text> by{" "}
@@ -198,12 +210,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  background: {
-    flex: 1,
-  },
+  background: { flex: 1 },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(15,23,42,0.6)",
+    backgroundColor: "rgba(15,23,42,0.65)",
   },
   content: {
     flex: 1,
@@ -211,6 +221,7 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     justifyContent: "space-between",
   },
+
   headerBlock: {
     alignItems: "center",
     marginTop: 16,
@@ -218,24 +229,32 @@ const styles = StyleSheet.create({
   logo: {
     width: 140,
     height: 140,
-    marginBottom: 12,
+    marginBottom: 14,
+  },
+  welcome: {
+    fontSize: 12,
+    color: "#fde68a",
+    letterSpacing: 3,
+    marginBottom: 6,
+    textAlign: "center",
   },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: "#fef9c3",
     textAlign: "center",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   subtitle: {
-    marginTop: 4,
+    marginTop: 6,
     fontSize: 13,
     color: "#e5e7eb",
     textAlign: "center",
   },
+
   formCard: {
-    backgroundColor: "rgba(15,23,42,0.9)",
-    borderRadius: 20,
+    backgroundColor: "rgba(15,23,42,0.92)",
+    borderRadius: 22,
     padding: 20,
     gap: 8,
   },
@@ -243,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#fef9c3",
-    marginBottom: 8,
+    marginBottom: 10,
     textAlign: "center",
   },
   label: {
@@ -266,6 +285,7 @@ const styles = StyleSheet.create({
     minHeight: 70,
     textAlignVertical: "top",
   },
+
   avatarRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -284,9 +304,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f97316",
     borderColor: "#fed7aa",
   },
-  avatarText: {
-    fontSize: 18,
-  },
+  avatarText: { fontSize: 18 },
+
   termsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -299,7 +318,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    backgroundColor: "transparent",
   },
   checkboxChecked: {
     backgroundColor: "#f97316",
@@ -309,11 +327,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#e5e7eb",
   },
+
   errorText: {
     marginTop: 8,
     fontSize: 12,
     color: "#fecaca",
   },
+
   submitButton: {
     marginTop: 16,
     backgroundColor: "#f97316",
@@ -329,16 +349,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
-  footer: {
-    alignItems: "center",
-  },
+
+  footer: { alignItems: "center" },
   footerText: {
     fontSize: 12,
     color: "#e5e7eb",
   },
-  heart: {
-    color: "#f97316",
-  },
+  heart: { color: "#f97316" },
   footerLink: {
     color: "#fbbf24",
     textDecorationLine: "underline",
