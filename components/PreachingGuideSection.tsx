@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 
 type MonthData = {
   year: number;
@@ -108,31 +108,58 @@ type CalendarCell = {
   isToday: boolean;
 };
 
+function findBestAvailableMonthKey(targetYear: number, targetMonthIndex: number) {
+  const desired = `${targetYear}-${pad(targetMonthIndex + 1)}`;
+  if (preachingCalendar[desired]) return desired;
+
+  // fallback: try nearest month backward then forward
+  for (let step = 1; step <= 24; step++) {
+    const backDate = new Date(targetYear, targetMonthIndex - step, 1);
+    const backKey = `${backDate.getFullYear()}-${pad(backDate.getMonth() + 1)}`;
+    if (preachingCalendar[backKey]) return backKey;
+
+    const forwardDate = new Date(targetYear, targetMonthIndex + step, 1);
+    const forwardKey = `${forwardDate.getFullYear()}-${pad(forwardDate.getMonth() + 1)}`;
+    if (preachingCalendar[forwardKey]) return forwardKey;
+  }
+
+  // final fallback
+  return "2025-01";
+}
+
 export default function PreachingGuideSection() {
-  const initialYear = 2025;
-  const initialMonth = 0;
-
   const today = new Date();
-  const todayKey = `${today.getFullYear()}-${pad(
-    today.getMonth() + 1
-  )}-${pad(today.getDate())}`;
+  const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(
+    today.getDate()
+  )}`;
 
-  const [year, setYear] = useState(initialYear);
-  const [month, setMonth] = useState(initialMonth);
+  // Start with today month/year (we’ll adjust with best available monthKey)
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
+
+  // ✅ On first load: jump to today’s month/year (or nearest month that exists in data)
+  useEffect(() => {
+    const bestKey = findBestAvailableMonthKey(today.getFullYear(), today.getMonth());
+    const [y, m] = bestKey.split("-");
+    const yNum = Number(y);
+    const mNum = Number(m) - 1;
+
+    setYear(yNum);
+    setMonth(mNum);
+
+    // Auto-select today ONLY if it has an entry in that month
+    const md = preachingCalendar[bestKey];
+    const hasTodayEntry = !!md?.verses?.[todayKey];
+    setSelectedDateKey(hasTodayEntry ? todayKey : null);
+  }, []);
 
   const monthKey = `${year}-${pad(month + 1)}`;
   const monthData = preachingCalendar[monthKey];
 
-  const daysInMonth = useMemo(
-    () => new Date(year, month + 1, 0).getDate(),
-    [year, month]
-  );
+  const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
 
-  const firstDayOfWeek = useMemo(
-    () => new Date(year, month, 1).getDay(),
-    [year, month]
-  );
+  const firstDayOfWeek = useMemo(() => new Date(year, month, 1).getDay(), [year, month]);
 
   const calendarCells: CalendarCell[] = useMemo(() => {
     const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
@@ -140,13 +167,25 @@ export default function PreachingGuideSection() {
 
     for (let i = 0; i < totalCells; i++) {
       const dayNum = i - firstDayOfWeek + 1;
+
       if (dayNum < 1 || dayNum > daysInMonth) {
-        cells.push({ label: "", dateKey: null, hasEntry: false, isToday: false });
+        cells.push({
+          label: "",
+          dateKey: null,
+          hasEntry: false,
+          isToday: false,
+        });
       } else {
         const dateKey = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
         const hasEntry = !!monthData?.verses?.[dateKey];
         const isToday = dateKey === todayKey;
-        cells.push({ label: `${dayNum}`, dateKey, hasEntry, isToday });
+
+        cells.push({
+          label: `${dayNum}`,
+          dateKey,
+          hasEntry,
+          isToday,
+        });
       }
     }
 
@@ -171,10 +210,12 @@ export default function PreachingGuideSection() {
   const handlePrevMonth = () => {
     let newMonth = month - 1;
     let newYear = year;
+
     if (newMonth < 0) {
       newMonth = 11;
       newYear = year - 1;
     }
+
     setMonth(newMonth);
     setYear(newYear);
     setSelectedDateKey(null);
@@ -183,10 +224,12 @@ export default function PreachingGuideSection() {
   const handleNextMonth = () => {
     let newMonth = month + 1;
     let newYear = year;
+
     if (newMonth > 11) {
       newMonth = 0;
       newYear = year + 1;
     }
+
     setMonth(newMonth);
     setYear(newYear);
     setSelectedDateKey(null);
@@ -209,9 +252,7 @@ export default function PreachingGuideSection() {
             {monthNames[month]} {year}
           </Text>
           <Text style={styles.themeText}>
-            {monthData
-              ? monthData.theme
-              : "No preaching guide has been added for this month yet."}
+            {monthData ? monthData.theme : "No preaching guide has been added for this month yet."}
           </Text>
         </View>
 
@@ -221,12 +262,20 @@ export default function PreachingGuideSection() {
       </View>
 
       <View style={styles.calendarCard}>
+        {/* ✅ FAINT LOGO WATERMARK (won’t block taps) */}
+        <Image
+          source={require("../assets/images/logo.png")}
+          style={styles.watermark}
+          resizeMode="contain"
+          pointerEvents="none"
+        />
+
         <View style={styles.weekdaysRow}>
-          {weekdayShort.map((d) => (
-            <Text key={d} style={styles.weekdayLabel}>
-              {d}
-            </Text>
-          ))}
+        {weekdayShort.map((d, index) => (
+  <Text key={`${d}-${index}`} style={styles.weekdayLabel}>
+    {d}
+  </Text>
+))}
         </View>
 
         <View style={styles.daysGrid}>
@@ -292,8 +341,7 @@ export default function PreachingGuideSection() {
           </>
         ) : monthData ? (
           <Text style={styles.detailsEmpty}>
-            Tap any marked date in the calendar to view the scripture or prayer focus
-            for that day.
+            Tap any marked date in the calendar to view the scripture or prayer focus for that day.
           </Text>
         ) : (
           <Text style={styles.detailsEmpty}>
@@ -306,7 +354,9 @@ export default function PreachingGuideSection() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 12 },
+  container: {
+    gap: 12,
+  },
   title: {
     fontSize: 18,
     fontWeight: "700",
@@ -335,10 +385,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.18)",
   },
-  monthArrowText: { color: "#fefce8", fontSize: 18 },
-  monthTitleBlock: { flex: 1, marginHorizontal: 10 },
-  monthTitle: { fontSize: 20, fontWeight: "800", color: "#fefce8" },
-  themeText: { marginTop: 2, fontSize: 12, color: "#fde68a" },
+  monthArrowText: {
+    color: "#fefce8",
+    fontSize: 18,
+  },
+  monthTitleBlock: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  monthTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#fefce8",
+  },
+  themeText: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#fde68a",
+  },
+
   calendarCard: {
     borderRadius: 24,
     backgroundColor: "rgba(15,23,42,0.96)",
@@ -346,7 +411,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
+    position: "relative",
+    overflow: "hidden",
   },
+
+  // ✅ NEW: Watermark style
+  watermark: {
+    position: "absolute",
+    width: 260,
+    height: 260,
+    opacity: 0.05,
+    alignSelf: "center",
+    top: 18,
+  },
+
   weekdaysRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -363,15 +441,53 @@ const styles = StyleSheet.create({
     color: "#cbd5f5",
     fontWeight: "600",
   },
-  daysGrid: { flexDirection: "row", flexWrap: "wrap", marginTop: 6 },
-  dayCell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: "center", justifyContent: "center" },
-  dayToday: { borderRadius: 16, borderWidth: 1, borderColor: "rgba(248,250,252,0.4)" },
-  daySelected: { borderRadius: 16, backgroundColor: "#f97316" },
-  dayLabel: { fontSize: 14, color: "#9ca3af", marginBottom: 3 },
-  dayLabelWithEntry: { color: "#e5e7eb", fontWeight: "600" },
-  dayLabelSelected: { color: "#0b1120", fontWeight: "800" },
-  dayDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#facc15" },
-  dayBar: { marginTop: 2, width: 20, height: 4, borderRadius: 999, backgroundColor: "#0b1120" },
+  daysGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 6,
+  },
+  dayCell: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dayToday: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(248,250,252,0.4)",
+  },
+  daySelected: {
+    borderRadius: 16,
+    backgroundColor: "#f97316",
+  },
+  dayLabel: {
+    fontSize: 14,
+    color: "#9ca3af",
+    marginBottom: 3,
+  },
+  dayLabelWithEntry: {
+    color: "#e5e7eb",
+    fontWeight: "600",
+  },
+  dayLabelSelected: {
+    color: "#0b1120",
+    fontWeight: "800",
+  },
+  dayDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#facc15",
+  },
+  dayBar: {
+    marginTop: 2,
+    width: 20,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: "#0b1120",
+  },
+
   detailsWrapper: {
     marginTop: 10,
     borderRadius: 20,
@@ -379,7 +495,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
   },
-  detailsContent: { padding: 12, gap: 10 },
+  detailsContent: {
+    padding: 12,
+    gap: 10,
+  },
   highlightCard: {
     borderRadius: 18,
     padding: 12,
@@ -391,8 +510,17 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
   },
-  highlightDate: { fontSize: 13, fontWeight: "700", color: "#fefce8", marginBottom: 4 },
-  highlightText: { fontSize: 14, color: "#0b1120", fontWeight: "600" },
+  highlightDate: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#fefce8",
+    marginBottom: 4,
+  },
+  highlightText: {
+    fontSize: 14,
+    color: "#0b1120",
+    fontWeight: "600",
+  },
   readingCard: {
     borderRadius: 16,
     padding: 12,
@@ -400,8 +528,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.6)",
   },
-  readingTitle: { fontSize: 13, fontWeight: "700", color: "#e5e7eb", marginBottom: 4 },
-  readingText: { fontSize: 14, color: "#e5e7eb", lineHeight: 22, marginBottom: 6 },
-  readingHint: { fontSize: 12, color: "#9ca3af", lineHeight: 18 },
-  detailsEmpty: { fontSize: 13, color: "#9ca3af", lineHeight: 20 },
+  readingTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#e5e7eb",
+    marginBottom: 4,
+  },
+  readingText: {
+    fontSize: 14,
+    color: "#e5e7eb",
+    lineHeight: 22,
+    marginBottom: 6,
+  },
+  readingHint: {
+    fontSize: 12,
+    color: "#9ca3af",
+    lineHeight: 18,
+  },
+  detailsEmpty: {
+    fontSize: 13,
+    color: "#9ca3af",
+    lineHeight: 20,
+  },
 });
