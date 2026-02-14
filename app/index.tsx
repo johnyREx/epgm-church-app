@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PROFILE_KEY = "epgm_profile";
+const currentYear = new Date().getFullYear();
 
 const avatars = ["🔥", "🕊️", "📖", "🙏🏾", "🌟", "🕯️"];
 
@@ -49,18 +50,10 @@ export default function OnboardingScreen() {
   }, [router]);
 
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      setError("Please enter your name.");
-      return;
-    }
-    if (!avatar) {
-      setError("Please select an avatar.");
-      return;
-    }
-    if (!acceptedTerms) {
-      setError("Please accept the terms and conditions.");
-      return;
-    }
+    if (!name.trim()) return setError("Please enter your name.");
+    if (!avatar) return setError("Please select an avatar.");
+    if (!acceptedTerms)
+      return setError("Please accept the terms and conditions.");
 
     setError("");
     setSubmitting(true);
@@ -99,7 +92,8 @@ export default function OnboardingScreen() {
     >
       <View style={styles.overlay}>
         <View style={styles.content}>
-          {/* ===== HEADER ===== */}
+
+          {/* HEADER */}
           <View style={styles.headerBlock}>
             <Image
               source={require("../assets/images/logo.png")}
@@ -118,7 +112,7 @@ export default function OnboardingScreen() {
             </Text>
           </View>
 
-          {/* ===== FORM ===== */}
+          {/* FORM */}
           <View style={styles.formCard}>
             <Text style={styles.formTitle}>
               Create Your Ministry Profile
@@ -190,13 +184,18 @@ export default function OnboardingScreen() {
             </Pressable>
           </View>
 
-          {/* ===== FOOTER ===== */}
+          {/* FOOTER */}
           <Pressable style={styles.footer} onPress={handleOpenDeveloper}>
+            <Text style={styles.footerCopyright}>
+              © {currentYear} Bishop Peter Ababio Ministries
+            </Text>
+
             <Text style={styles.footerText}>
               Built with <Text style={styles.heart}>❤️</Text> by{" "}
               <Text style={styles.footerLink}>Johny Rex</Text>
             </Text>
           </Pressable>
+
         </View>
       </View>
     </ImageBackground>
@@ -211,10 +210,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   background: { flex: 1 },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(15,23,42,0.65)",
-  },
+  overlay: { flex: 1, backgroundColor: "rgba(15,23,42,0.65)" },
   content: {
     flex: 1,
     paddingHorizontal: 24,
@@ -222,21 +218,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  headerBlock: {
-    alignItems: "center",
-    marginTop: 16,
-  },
-  logo: {
-    width: 140,
-    height: 140,
-    marginBottom: 14,
-  },
+  headerBlock: { alignItems: "center", marginTop: 16 },
+  logo: { width: 140, height: 140, marginBottom: 14 },
+
   welcome: {
     fontSize: 12,
     color: "#fde68a",
     letterSpacing: 3,
     marginBottom: 6,
-    textAlign: "center",
   },
   title: {
     fontSize: 20,
@@ -249,7 +238,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 13,
     color: "#e5e7eb",
-    textAlign: "center",
   },
 
   formCard: {
@@ -258,6 +246,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 8,
   },
+
   formTitle: {
     fontSize: 16,
     fontWeight: "700",
@@ -265,11 +254,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-  label: {
-    fontSize: 13,
-    color: "#e5e7eb",
-    marginTop: 6,
-  },
+
+  label: { fontSize: 13, color: "#e5e7eb", marginTop: 6 },
+
   input: {
     marginTop: 4,
     borderRadius: 12,
@@ -281,10 +268,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15,23,42,0.7)",
     fontSize: 14,
   },
-  aboutInput: {
-    minHeight: 70,
-    textAlignVertical: "top",
-  },
+
+  aboutInput: { minHeight: 70, textAlignVertical: "top" },
 
   avatarRow: {
     flexDirection: "row",
@@ -292,6 +277,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 6,
   },
+
   avatarChip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -300,18 +286,16 @@ const styles = StyleSheet.create({
     borderColor: "rgba(248,250,252,0.3)",
     backgroundColor: "rgba(15,23,42,0.8)",
   },
+
   avatarChipActive: {
     backgroundColor: "#f97316",
     borderColor: "#fed7aa",
   },
+
   avatarText: { fontSize: 18 },
 
-  termsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-    gap: 8,
-  },
+  termsRow: { flexDirection: "row", alignItems: "center", marginTop: 10, gap: 8 },
+
   checkbox: {
     width: 18,
     height: 18,
@@ -319,20 +303,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
+
   checkboxChecked: {
     backgroundColor: "#f97316",
     borderColor: "#fed7aa",
   },
-  termsText: {
-    fontSize: 12,
-    color: "#e5e7eb",
-  },
 
-  errorText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#fecaca",
-  },
+  termsText: { fontSize: 12, color: "#e5e7eb" },
+
+  errorText: { marginTop: 8, fontSize: 12, color: "#fecaca" },
 
   submitButton: {
     marginTop: 16,
@@ -341,21 +320,32 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
+
+  submitButtonDisabled: { opacity: 0.6 },
+
   submitText: {
     color: "#0b1120",
     fontSize: 15,
     fontWeight: "700",
   },
 
-  footer: { alignItems: "center" },
+  footer: {
+    alignItems: "center",
+    gap: 6,
+  },
+
+  footerCopyright: {
+    fontSize: 11,
+    color: "#9ca3af",
+  },
+
   footerText: {
     fontSize: 12,
     color: "#e5e7eb",
   },
+
   heart: { color: "#f97316" },
+
   footerLink: {
     color: "#fbbf24",
     textDecorationLine: "underline",

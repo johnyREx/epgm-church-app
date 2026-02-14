@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,9 +8,11 @@ import {
   Pressable,
   Linking,
   ScrollView,
+  Animated,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+
 import HistorySection from "../components/HistorySection";
 import ConstitutionSection from "../components/ConstitutionSection";
 import PrayerRequestSection from "../components/PrayerRequestSection";
@@ -23,6 +25,8 @@ import RadioSection from "../components/RadioSection";
 import ContactSection from "../components/ContactSection";
 
 const PROFILE_KEY = "epgm_profile";
+const currentYear = new Date().getFullYear();
+const APP_VERSION = "v1.0.0";
 
 type Profile = {
   name: string;
@@ -49,6 +53,16 @@ export default function HomeScreen() {
   const [activeKey, setActiveKey] = useState(MENU_ITEMS[0].key);
   const [menuOpen, setMenuOpen] = useState(true);
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   useEffect(() => {
     const load = async () => {
       const stored = await AsyncStorage.getItem(PROFILE_KEY);
@@ -57,8 +71,7 @@ export default function HomeScreen() {
         return;
       }
       try {
-        const parsed: Profile = JSON.parse(stored);
-        setProfile(parsed);
+        setProfile(JSON.parse(stored));
       } catch {
         router.replace("/");
       }
@@ -72,28 +85,17 @@ export default function HomeScreen() {
 
   const renderContent = () => {
     switch (activeKey) {
-      case "history":
-        return <HistorySection />
-      case "constitution":
-        return <ConstitutionSection />
-      case "preachingGuide":
-        return <PreachingGuideSection />
-      case "prayerRequest":
-        return <PrayerRequestSection />
-      case "bibleStudy":
-        return <BibleStudySection />
-      case "liveStream":
-        return <LiveStreamSection />
-      case "radio":
-        return <RadioSection />
-      case "aboutMinistry":
-        return <AboutMinistrySection />
-      case "contact":
-        return <ContactSection />;
-      case "aboutDeveloper":
-        return <AboutDeveloperSection />
-      default:
-        return null;
+      case "history": return <HistorySection />;
+      case "constitution": return <ConstitutionSection />;
+      case "preachingGuide": return <PreachingGuideSection />;
+      case "prayerRequest": return <PrayerRequestSection />;
+      case "bibleStudy": return <BibleStudySection />;
+      case "liveStream": return <LiveStreamSection />;
+      case "radio": return <RadioSection />;
+      case "aboutMinistry": return <AboutMinistrySection />;
+      case "contact": return <ContactSection />;
+      case "aboutDeveloper": return <AboutDeveloperSection />;
+      default: return null;
     }
   };
 
@@ -105,6 +107,8 @@ export default function HomeScreen() {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
+
+          {/* ===== HEADER ===== */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Image
@@ -127,6 +131,7 @@ export default function HomeScreen() {
               >
                 <Text style={styles.menuToggleText}>☰</Text>
               </Pressable>
+
               <View style={styles.profileBlock}>
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarGlyph}>
@@ -147,6 +152,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
+          {/* ===== BODY ===== */}
           <View style={styles.body}>
             {menuOpen && (
               <View style={styles.menu}>
@@ -182,12 +188,28 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <Pressable style={styles.footer} onPress={handleOpenDeveloperGitHub}>
-            <Text style={styles.footerText}>
-              Built with <Text style={styles.heart}>❤️</Text> by{" "}
-              <Text style={styles.footerLink}>Johny Rex</Text>
-            </Text>
-          </Pressable>
+          {/* ===== PROFESSIONAL FOOTER ===== */}
+          <View style={styles.footerWrapper}>
+            <View style={styles.divider} />
+
+            <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
+              <Text style={styles.footerCopyright}>
+                © {currentYear} Bishop Peter Ababio Ministries
+              </Text>
+
+              <Text style={styles.footerVersion}>
+                {APP_VERSION}
+              </Text>
+
+              <Pressable onPress={handleOpenDeveloperGitHub}>
+                <Text style={styles.footerText}>
+                  Built with <Text style={styles.heart}>❤️</Text> by{" "}
+                  <Text style={styles.footerLink}>Johny Rex</Text>
+                </Text>
+              </Pressable>
+            </Animated.View>
+          </View>
+
         </View>
       </View>
     </ImageBackground>
@@ -195,48 +217,27 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(15,23,42,0.7)",
-  },
+  background: { flex: 1 },
+  overlay: { flex: 1, backgroundColor: "rgba(15,23,42,0.7)" },
   container: {
     flex: 1,
     paddingTop: 40,
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 10,
   },
+
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  headerLogo: {
-    width: 44,
-    height: 44,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#fef9c3",
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: "#e5e7eb",
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerLogo: { width: 44, height: 44 },
+  headerTitle: { fontSize: 16, fontWeight: "700", color: "#fef9c3" },
+  headerSubtitle: { fontSize: 11, color: "#e5e7eb" },
+
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+
   menuToggle: {
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -245,10 +246,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.2)",
   },
-  menuToggleText: {
-    fontSize: 16,
-    color: "#fefce8",
-  },
+  menuToggleText: { fontSize: 16, color: "#fefce8" },
+
   profileBlock: {
     flexDirection: "row",
     alignItems: "center",
@@ -267,26 +266,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#f97316",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 2,
   },
-  avatarGlyph: {
-    fontSize: 18,
-  },
-  profileName: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#fef9c3",
-  },
-  profileAbout: {
-    fontSize: 11,
-    color: "#e5e7eb",
-    maxWidth: 160,
-  },
-  body: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 12,
-  },
+  avatarGlyph: { fontSize: 18 },
+  profileName: { fontSize: 13, fontWeight: "700", color: "#fef9c3" },
+  profileAbout: { fontSize: 11, color: "#e5e7eb", maxWidth: 160 },
+
+  body: { flex: 1, flexDirection: "row", gap: 12 },
+
   menu: {
     width: 170,
     backgroundColor: "rgba(15,23,42,0.95)",
@@ -294,47 +280,34 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 6,
   },
-  menuItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-  },
-  menuItemActive: {
-    backgroundColor: "#f97316",
-  },
-  menuItemText: {
-    fontSize: 13,
-    color: "#e5e7eb",
-  },
-  menuItemTextActive: {
-    color: "#0b1120",
-    fontWeight: "700",
-  },
+  menuItem: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 12 },
+  menuItemActive: { backgroundColor: "#f97316" },
+  menuItemText: { fontSize: 13, color: "#e5e7eb" },
+  menuItemTextActive: { color: "#0b1120", fontWeight: "700" },
+
   content: {
     flex: 1,
     backgroundColor: "rgba(15,23,42,0.95)",
     borderRadius: 18,
     padding: 14,
   },
-  contentScroll: {
-    paddingBottom: 24,
+  contentScroll: { paddingBottom: 24 },
+
+  footerWrapper: { paddingTop: 10 },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    marginBottom: 10,
   },
-  contentText: {
-    fontSize: 14,
-    color: "#e5e7eb",
-    lineHeight: 22,
+  footer: { alignItems: "center", gap: 4 },
+  footerVersion: {
+    fontSize: 11,
+    color: "#fbbf24",
+    letterSpacing: 1,
   },
-  footer: {
-    marginTop: 12,
-    alignItems: "center",
-  },
-  footerText: {
-    fontSize: 12,
-    color: "#e5e7eb",
-  },
-  heart: {
-    color: "#f97316",
-  },
+  footerCopyright: { fontSize: 11, color: "#9ca3af" },
+  footerText: { fontSize: 12, color: "#e5e7eb" },
+  heart: { color: "#f97316" },
   footerLink: {
     color: "#fbbf24",
     textDecorationLine: "underline",
