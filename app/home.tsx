@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   View,
+  RefreshControl,
 } from "react-native";
 
 import AboutDeveloperSection from "../components/AboutDeveloperSection";
@@ -52,6 +53,7 @@ export default function HomeScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [activeKey, setActiveKey] = useState(MENU_ITEMS[0].key);
   const [menuOpen, setMenuOpen] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -79,8 +81,20 @@ export default function HomeScreen() {
     load();
   }, [router]);
 
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem(PROFILE_KEY);
+    router.replace("/");
+  };
+
   const handleOpenDeveloperGitHub = () => {
     Linking.openURL("https://github.com/johnyREx");
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 800);
   };
 
   const renderContent = () => {
@@ -118,6 +132,7 @@ export default function HomeScreen() {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
+
           {/* ===== HEADER ===== */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -128,8 +143,9 @@ export default function HomeScreen() {
               />
               <View>
                 <Text style={styles.headerTitle}>
-                  BPAM Church App <Text style={styles.footerVersion}>{APP_VERSION}</Text>
-                  </Text>
+                  BPAM Church App{" "}
+                  <Text style={styles.footerVersion}>{APP_VERSION}</Text>
+                </Text>
                 <Text style={styles.headerSubtitle}>
                   Bishop Peter Ababio Ministries
                 </Text>
@@ -144,23 +160,31 @@ export default function HomeScreen() {
                 <Text style={styles.menuToggleText}>☰</Text>
               </Pressable>
 
-              <View style={styles.profileBlock}>
-                <View style={styles.avatarCircle}>
-                  <Text style={styles.avatarGlyph}>
-                    {profile?.avatar || "🔥"}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={styles.profileName}>
-                    {profile?.name || "EPGM Member"}
-                  </Text>
-                  {profile?.about ? (
-                    <Text style={styles.profileAbout} numberOfLines={1}>
-                      {profile.about}
+              {/* ✅ FIXED LAYOUT */}
+              <View style={styles.profileWrapper}>
+                <View style={styles.profileBlock}>
+                  <View style={styles.avatarCircle}>
+                    <Text style={styles.avatarGlyph}>
+                      {profile?.avatar || "🔥"}
                     </Text>
-                  ) : null}
+                  </View>
+                  <View>
+                    <Text style={styles.profileName}>
+                      {profile?.name || "EPGM Member"}
+                    </Text>
+                    {profile?.about ? (
+                      <Text style={styles.profileAbout} numberOfLines={1}>
+                        {profile.about}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
+
+                <Pressable onPress={handleLogout} style={styles.logoutBtn}>
+                  <Text style={styles.logoutText}>Logout</Text>
+                </Pressable>
               </View>
+
             </View>
           </View>
 
@@ -194,13 +218,20 @@ export default function HomeScreen() {
               <ScrollView
                 contentContainerStyle={styles.contentScroll}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor="#f97316"
+                  />
+                }
               >
                 {renderContent()}
               </ScrollView>
             </View>
           </View>
 
-          {/* ===== PROFESSIONAL FOOTER ===== */}
+          {/* ===== FOOTER ===== */}
           <View style={styles.footerWrapper}>
             <View style={styles.divider} />
 
@@ -219,6 +250,7 @@ export default function HomeScreen() {
               </Pressable>
             </Animated.View>
           </View>
+
         </View>
       </View>
     </ImageBackground>
@@ -240,12 +272,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 16,
   },
+
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerLogo: { width: 44, height: 44 },
   headerTitle: { fontSize: 16, fontWeight: "700", color: "#fef9c3" },
   headerSubtitle: { fontSize: 11, color: "#e5e7eb" },
 
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+  headerRight: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+
+  profileWrapper: {
+    alignItems: "flex-end",
+  },
 
   menuToggle: {
     paddingHorizontal: 10,
@@ -268,6 +305,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.2)",
   },
+
+  logoutBtn: {
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(249,115,22,0.15)",
+    borderWidth: 1,
+    borderColor: "#f97316",
+  },
+
+  logoutText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#f97316",
+  },
+
   avatarCircle: {
     width: 32,
     height: 32,
@@ -289,6 +343,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 6,
   },
+
   menuItem: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 12 },
   menuItemActive: { backgroundColor: "#f97316" },
   menuItemText: { fontSize: 13, color: "#e5e7eb" },
@@ -309,16 +364,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   footer: { alignItems: "center", gap: 4 },
-  footerVersion: {
-    fontSize: 11,
-    color: "#fbbf24",
-    letterSpacing: 1,
-  },
+  footerVersion: { fontSize: 11, color: "#fbbf24", letterSpacing: 1 },
   footerCopyright: { fontSize: 11, color: "#9ca3af" },
   footerText: { fontSize: 12, color: "#e5e7eb" },
   heart: { color: "#f97316" },
-  footerLink: {
-    color: "#fbbf24",
-    textDecorationLine: "underline",
-  },
+  footerLink: { color: "#fbbf24", textDecorationLine: "underline" },
 });
