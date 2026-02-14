@@ -19,7 +19,7 @@ const GHANA: LocationCard = {
     { label: "Call / WhatsApp", value: "+233244562322" },
   ],
   website: [
-    { label: "Website", url: "https://www.triplekmedia.com" },
+    { label: "Website", url: "https://bishoppeterababioministries.com" },
     { label: "YouTube", url: "https://www.youtube.com/@triplekmediagh" },
     { label: "Facebook", url: "https://www.facebook.com/share/1ABdpcX8s5/" },
     { label: "TikTok", url: "https://tiktok.com/@triplekmedia.com389540" },

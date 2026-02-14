@@ -51,7 +51,7 @@ export default function PrayerRequestSection({ defaultName }: Props) {
       "Prayer Request:",
       cleanMessage,
       "",
-      "Sent via EPGM Church App",
+      "Sent via BPAM Church App",
     ];
     const body = bodyLines.join("\n");
 

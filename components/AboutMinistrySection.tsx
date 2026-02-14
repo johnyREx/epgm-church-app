@@ -59,7 +59,7 @@ const LEADERS_PRIMARY: Leader[] = [
 ];
 
 const LEADERS_OTHER: Leader[] = [
-  { id: "kenneth", name: "Keneth Amaro", role: "Elder" },
+  { id: "kenneth", name: "Keneth Amaro", role: "Church Elder" },
   { id: "felicia", name: "Sister Felicia Niamke", role: "Church Elder" },
   { id: "john", name: "Brother John Kwofie", role: "Youth President" },
   { id: "seth", name: "Brother Seth Andrews Ackah", role: "Youth Vice President" },
