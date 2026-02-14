@@ -17,7 +17,7 @@ const GOOGLE_ENDPOINT =
 
 // ✅ Payment constants (update whenever you want)
 const PAYMENT_AMOUNT_EUR = 50;
-const PAYMENT_GHS_NOTE = "Equivalent in GHS depends on current FX rate";
+const PAYMENT_GHS_NOTE = 700; // Fixed GHS Amount
 
 const PAYPAL_ME_LINK = "https://paypal.me/obotanababio";
 
@@ -56,7 +56,7 @@ export default function BibleStudySection() {
       "Mobile Money User",
       `Enter number: ${MOMO_NUMBER}`,
       `Name: ${MOMO_ACCOUNT_NAME}`,
-      `Amount: (Pay the equivalent of €${PAYMENT_AMOUNT_EUR})`,
+      `Amount: ${PAYMENT_GHS_NOTE} GHS`,
       `Reference: Bible School - (your name)`,
       "Confirm and complete payment",
       "Send proof to the ministry email or WhatsApp if requested",
@@ -190,7 +190,8 @@ export default function BibleStudySection() {
         <Text style={styles.title}>EPGM Bible School</Text>
         <Text style={styles.subtitle}>
           Enrollment fee: <Text style={styles.money}>€{PAYMENT_AMOUNT_EUR}</Text>{" "}
-          (GHS equivalent varies). Submit the form first, then proceed to payment.
+          / <Text style={styles.money}>{PAYMENT_GHS_NOTE} GHS</Text>. Submit the form
+          first, then proceed to payment.
         </Text>
 
         <View style={styles.section}>
@@ -257,7 +258,12 @@ export default function BibleStudySection() {
                   onPress={() => setClassType(t)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      selected && styles.chipTextSelected,
+                    ]}
+                  >
                     {t}
                   </Text>
                 </Pressable>
@@ -265,7 +271,9 @@ export default function BibleStudySection() {
             })}
           </View>
 
-          <Text style={[styles.labelSmall, { marginTop: 8 }]}>Preferred Language</Text>
+          <Text style={[styles.labelSmall, { marginTop: 8 }]}>
+            Preferred Language
+          </Text>
           <View style={styles.chipRow}>
             {LANGUAGES.map((l) => {
               const selected = language === l;
@@ -275,7 +283,12 @@ export default function BibleStudySection() {
                   onPress={() => setLanguage(l)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      selected && styles.chipTextSelected,
+                    ]}
+                  >
                     {l}
                   </Text>
                 </Pressable>
@@ -297,7 +310,12 @@ export default function BibleStudySection() {
                   onPress={() => setPaymentMethod(m)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      selected && styles.chipTextSelected,
+                    ]}
+                  >
                     {m}
                   </Text>
                 </Pressable>
@@ -319,6 +337,9 @@ export default function BibleStudySection() {
                 <Text style={styles.cardTitle}>MTN Mobile Money</Text>
                 <Text style={styles.cardLine}>Number: {MOMO_NUMBER}</Text>
                 <Text style={styles.cardLine}>Name: {MOMO_ACCOUNT_NAME}</Text>
+                <Text style={styles.cardLine}>
+                  Amount: {PAYMENT_GHS_NOTE} GHS
+                </Text>
                 <Text style={styles.cardLine}>
                   After you submit, MoMo instructions will show.
                 </Text>
@@ -353,29 +374,40 @@ export default function BibleStudySection() {
         </Pressable>
 
         <Text style={styles.footerNote}>
-          By submitting you confirm you are willing to be trained under the doctrines and
-          leadership of End Time Prayer Global Ministry – Bishop Peter Ababio Ministries.
+          By submitting you confirm you are willing to be trained under the doctrines
+          and leadership of End Time Prayer Global Ministry – Bishop Peter Ababio
+          Ministries.
         </Text>
       </ScrollView>
 
       {/* ✅ MoMo popup */}
-      <Modal visible={showMomo} transparent animationType="fade" onRequestClose={() => setShowMomo(false)}>
+      <Modal
+        visible={showMomo}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMomo(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Mobile Money Payment (MTN)</Text>
             <Text style={styles.modalLine}>Number: {MOMO_NUMBER}</Text>
             <Text style={styles.modalLine}>Name: {MOMO_ACCOUNT_NAME}</Text>
             <Text style={styles.modalLine}>
-              Pay the equivalent of €{PAYMENT_AMOUNT_EUR} (rate may vary)
+              Amount to Pay: {PAYMENT_GHS_NOTE} GHS
             </Text>
 
             <View style={{ marginTop: 8, gap: 4 }}>
               {momoInstructions.map((x) => (
-                <Text key={x} style={styles.modalInstruction}>• {x}</Text>
+                <Text key={x} style={styles.modalInstruction}>
+                  • {x}
+                </Text>
               ))}
             </View>
 
-            <Pressable style={styles.modalBtn} onPress={() => setShowMomo(false)}>
+            <Pressable
+              style={styles.modalBtn}
+              onPress={() => setShowMomo(false)}
+            >
               <Text style={styles.modalBtnText}>Done</Text>
             </Pressable>
           </View>

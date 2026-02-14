@@ -1,28 +1,28 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  Image,
-  Pressable,
-  Linking,
-  ScrollView,
-  Animated,
-} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Image,
+  ImageBackground,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import HistorySection from "../components/HistorySection";
-import ConstitutionSection from "../components/ConstitutionSection";
-import PrayerRequestSection from "../components/PrayerRequestSection";
-import PreachingGuideSection from "../components/PreachingGuideSection";
-import BibleStudySection from "../components/BibleStudySection";
 import AboutDeveloperSection from "../components/AboutDeveloperSection";
 import AboutMinistrySection from "../components/AboutMinistrySection";
-import LiveStreamSection from "../components/LiveStreamSection";
-import RadioSection from "../components/RadioSection";
+import BibleStudySection from "../components/BibleStudySection";
+import ConstitutionSection from "../components/ConstitutionSection";
 import ContactSection from "../components/ContactSection";
+import HistorySection from "../components/HistorySection";
+import LiveStreamSection from "../components/LiveStreamSection";
+import PrayerRequestSection from "../components/PrayerRequestSection";
+import PreachingGuideSection from "../components/PreachingGuideSection";
+import RadioSection from "../components/RadioSection";
 
 const PROFILE_KEY = "epgm_profile";
 const currentYear = new Date().getFullYear();
@@ -85,17 +85,28 @@ export default function HomeScreen() {
 
   const renderContent = () => {
     switch (activeKey) {
-      case "history": return <HistorySection />;
-      case "constitution": return <ConstitutionSection />;
-      case "preachingGuide": return <PreachingGuideSection />;
-      case "prayerRequest": return <PrayerRequestSection />;
-      case "bibleStudy": return <BibleStudySection />;
-      case "liveStream": return <LiveStreamSection />;
-      case "radio": return <RadioSection />;
-      case "aboutMinistry": return <AboutMinistrySection />;
-      case "contact": return <ContactSection />;
-      case "aboutDeveloper": return <AboutDeveloperSection />;
-      default: return null;
+      case "history":
+        return <HistorySection />;
+      case "constitution":
+        return <ConstitutionSection />;
+      case "preachingGuide":
+        return <PreachingGuideSection />;
+      case "prayerRequest":
+        return <PrayerRequestSection />;
+      case "bibleStudy":
+        return <BibleStudySection />;
+      case "liveStream":
+        return <LiveStreamSection />;
+      case "radio":
+        return <RadioSection />;
+      case "aboutMinistry":
+        return <AboutMinistrySection />;
+      case "contact":
+        return <ContactSection />;
+      case "aboutDeveloper":
+        return <AboutDeveloperSection />;
+      default:
+        return null;
     }
   };
 
@@ -107,7 +118,6 @@ export default function HomeScreen() {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-
           {/* ===== HEADER ===== */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -117,7 +127,9 @@ export default function HomeScreen() {
                 resizeMode="contain"
               />
               <View>
-                <Text style={styles.headerTitle}>BPAM Church App</Text>
+                <Text style={styles.headerTitle}>
+                  BPAM Church App <Text style={styles.footerVersion}>{APP_VERSION}</Text>
+                  </Text>
                 <Text style={styles.headerSubtitle}>
                   Bishop Peter Ababio Ministries
                 </Text>
@@ -197,9 +209,7 @@ export default function HomeScreen() {
                 © {currentYear} Bishop Peter Ababio Ministries
               </Text>
 
-              <Text style={styles.footerVersion}>
-                {APP_VERSION}
-              </Text>
+              <Text style={styles.footerVersion}>{APP_VERSION}</Text>
 
               <Pressable onPress={handleOpenDeveloperGitHub}>
                 <Text style={styles.footerText}>
@@ -209,7 +219,6 @@ export default function HomeScreen() {
               </Pressable>
             </Animated.View>
           </View>
-
         </View>
       </View>
     </ImageBackground>
