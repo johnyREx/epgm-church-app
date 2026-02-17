@@ -68,6 +68,12 @@ export default function AboutDeveloperSection() {
         <Text style={styles.name}>Johny Rex</Text>
         <Text style={styles.role}>Software Engineer · App Developer</Text>
 
+        <Text style={styles.identity}>
+          John Kwofie by birth, Johny Rex by code, and T-Rex to friends.
+          Johny Rex is my developer alter-ego — the builder of systems and apps.
+          John Kwofie is the political philosopher, thinker, and observer of society.
+        </Text>
+
         <View style={styles.badges}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>React Native</Text>
@@ -78,12 +84,18 @@ export default function AboutDeveloperSection() {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>Firebase</Text>
           </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Thinker</Text>
+          </View>
         </View>
 
         <Text style={styles.statement}>
-          I build meaningful digital tools that serve communities, faith, and purpose.
-          This application supports the vision of End Time Prayer Global Ministry by
-          providing a simple, modern, and accessible platform for members worldwide.
+          I am driven by creativity, purpose, and the belief that technology
+          should serve people and communities. Through Johny Rex, I design and
+          develop digital tools that are clean, scalable, and meaningful.
+          Through John Kwofie, I remain a student of politics, philosophy, and
+          human behavior. This application reflects my commitment to building
+          solutions that support faith, structure, and global connection.
         </Text>
       </View>
 
@@ -152,9 +164,7 @@ export default function AboutDeveloperSection() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 14,
-  },
+  container: { gap: 14 },
 
   hero: {
     alignItems: "center",
@@ -163,14 +173,14 @@ const styles = StyleSheet.create({
   },
 
   avatarRing: {
-    width: 112,
-    height: 112,
+    width: 150,
+    height: 150,
     borderRadius: 999,
     padding: 3,
     backgroundColor: "rgba(250,204,21,0.35)",
     shadowColor: "#facc15",
-    shadowOpacity: 0.6,
-    shadowRadius: 14,
+    shadowOpacity: 0.7,
+    shadowRadius: 22,
     shadowOffset: { width: 0, height: 0 },
     marginBottom: 10,
   },
@@ -183,7 +193,7 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "900",
     color: "#fefce8",
     textShadowColor: "#f59e0b",
@@ -193,6 +203,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#e5e7eb",
     marginTop: 4,
+  },
+
+  identity: {
+    fontSize: 12,
+    color: "#d1d5db",
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 18,
   },
 
   badges: {
@@ -281,14 +299,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 10,
   },
-  linkIcon: {
-    width: 18,
-    height: 18,
-  },
-  linkMid: {
-    flex: 1,
-    gap: 2,
-  },
+  linkIcon: { width: 18, height: 18 },
+
+  linkMid: { flex: 1, gap: 2 },
+
   linkLabel: {
     fontSize: 12,
     color: "#fde68a",
@@ -333,9 +347,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#fef3c7",
   },
-  heart: {
-    color: "#f97316",
-  },
+  heart: { color: "#f97316" },
   footerSub: {
     fontSize: 11,
     color: "#9ca3af",
