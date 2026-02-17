@@ -9,7 +9,9 @@ import {
   Pressable,
   Linking,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -85,120 +87,127 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <ImageBackground
-      source={require("../assets/images/theme.jpg")}
-      resizeMode="cover"
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.content}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ImageBackground
+        source={require("../assets/images/theme.jpg")}
+        resizeMode="cover"
+        style={styles.background}
+      >
+        <View style={styles.overlay}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.content}>
 
-          {/* HEADER */}
-          <View style={styles.headerBlock}>
-            <Image
-              source={require("../assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+              {/* HEADER */}
+              <View style={styles.headerBlock}>
+                <Image
+                  source={require("../assets/images/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
 
-            <Text style={styles.welcome}>WELCOME TO</Text>
+                <Text style={styles.welcome}>WELCOME TO</Text>
 
-            <Text style={styles.title}>
-              BISHOP PETER ABABIO MINISTRIES
-            </Text>
+                <Text style={styles.title}>
+                  BISHOP PETER ABABIO MINISTRIES
+                </Text>
 
-            <Text style={styles.subtitle}>
-              End Time Prayer Global Ministry
-            </Text>
-          </View>
+                <Text style={styles.subtitle}>
+                  End Time Prayer Global Ministry
+                </Text>
+              </View>
 
-          {/* FORM */}
-          <View style={styles.formCard}>
-            <Text style={styles.formTitle}>
-              Create Your Ministry Profile
-            </Text>
+              {/* FORM */}
+              <View style={styles.formCard}>
+                <Text style={styles.formTitle}>
+                  Create Your Ministry Profile
+                </Text>
 
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter your name"
-              placeholderTextColor="#d1d5db"
-              style={styles.input}
-            />
+                <Text style={styles.label}>Name</Text>
+                <TextInput
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#d1d5db"
+                  style={styles.input}
+                />
 
-            <Text style={styles.label}>About / Status</Text>
-            <TextInput
-              value={about}
-              onChangeText={setAbout}
-              placeholder="E.g. A burning vessel for Christ"
-              placeholderTextColor="#d1d5db"
-              style={[styles.input, styles.aboutInput]}
-              multiline
-            />
+                <Text style={styles.label}>About / Status</Text>
+                <TextInput
+                  value={about}
+                  onChangeText={setAbout}
+                  placeholder="E.g. A burning vessel for Christ"
+                  placeholderTextColor="#d1d5db"
+                  style={[styles.input, styles.aboutInput]}
+                  multiline
+                />
 
-            <Text style={styles.label}>Choose an avatar</Text>
-            <View style={styles.avatarRow}>
-              {avatars.map((item) => (
+                <Text style={styles.label}>Choose an avatar</Text>
+                <View style={styles.avatarRow}>
+                  {avatars.map((item) => (
+                    <Pressable
+                      key={item}
+                      onPress={() => setAvatar(item)}
+                      style={[
+                        styles.avatarChip,
+                        avatar === item && styles.avatarChipActive,
+                      ]}
+                    >
+                      <Text style={styles.avatarText}>{item}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+
                 <Pressable
-                  key={item}
-                  onPress={() => setAvatar(item)}
+                  style={styles.termsRow}
+                  onPress={() => setAcceptedTerms((v) => !v)}
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      acceptedTerms && styles.checkboxChecked,
+                    ]}
+                  />
+                  <Text style={styles.termsText}>
+                    I accept the Terms and Conditions
+                  </Text>
+                </Pressable>
+
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+                <Pressable
+                  onPress={handleSubmit}
+                  disabled={submitting}
                   style={[
-                    styles.avatarChip,
-                    avatar === item && styles.avatarChipActive,
+                    styles.submitButton,
+                    submitting && styles.submitButtonDisabled,
                   ]}
                 >
-                  <Text style={styles.avatarText}>{item}</Text>
+                  <Text style={styles.submitText}>
+                    {submitting ? "Entering..." : "Enter App"}
+                  </Text>
                 </Pressable>
-              ))}
+              </View>
+
+              {/* FOOTER */}
+              <Pressable style={styles.footer} onPress={handleOpenDeveloper}>
+                <Text style={styles.footerCopyright}>
+                  © {currentYear} Bishop Peter Ababio Ministries
+                </Text>
+
+                <Text style={styles.footerText}>
+                  Built with <Text style={styles.heart}>❤️</Text> by{" "}
+                  <Text style={styles.footerLink}>Johny Rex</Text>
+                </Text>
+              </Pressable>
+
             </View>
-
-            <Pressable
-              style={styles.termsRow}
-              onPress={() => setAcceptedTerms((v) => !v)}
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  acceptedTerms && styles.checkboxChecked,
-                ]}
-              />
-              <Text style={styles.termsText}>
-                I accept the Terms and Conditions
-              </Text>
-            </Pressable>
-
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-            <Pressable
-              onPress={handleSubmit}
-              disabled={submitting}
-              style={[
-                styles.submitButton,
-                submitting && styles.submitButtonDisabled,
-              ]}
-            >
-              <Text style={styles.submitText}>
-                {submitting ? "Entering..." : "Enter App"}
-              </Text>
-            </Pressable>
-          </View>
-
-          {/* FOOTER */}
-          <Pressable style={styles.footer} onPress={handleOpenDeveloper}>
-            <Text style={styles.footerCopyright}>
-              © {currentYear} Bishop Peter Ababio Ministries
-            </Text>
-
-            <Text style={styles.footerText}>
-              Built with <Text style={styles.heart}>❤️</Text> by{" "}
-              <Text style={styles.footerLink}>Johny Rex</Text>
-            </Text>
-          </Pressable>
-
+          </ScrollView>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
 
@@ -212,7 +221,7 @@ const styles = StyleSheet.create({
   background: { flex: 1 },
   overlay: { flex: 1, backgroundColor: "rgba(15,23,42,0.65)" },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     paddingVertical: 32,
     justifyContent: "space-between",

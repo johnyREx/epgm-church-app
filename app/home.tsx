@@ -12,6 +12,7 @@ import {
   Text,
   View,
   RefreshControl,
+  Alert,
 } from "react-native";
 
 import AboutDeveloperSection from "../components/AboutDeveloperSection";
@@ -46,6 +47,7 @@ const MENU_ITEMS = [
   { key: "aboutMinistry", label: "About the Ministry" },
   { key: "contact", label: "Locations & Contacts" },
   { key: "aboutDeveloper", label: "About the Developer" },
+  { key: "logout", label: "Logout" },
 ];
 
 export default function HomeScreen() {
@@ -98,6 +100,19 @@ export default function HomeScreen() {
   };
 
   const renderContent = () => {
+
+    if (activeKey === "logout") {
+      Alert.alert(
+        "Log Out",
+        "Logging out will remove your profile from this device.\n\nThis app does NOT store personal information online, so you are not losing anything important.",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => setActiveKey("history") },
+          { text: "Log Out", style: "destructive", onPress: handleLogout },
+        ]
+      );
+      return null;
+    }
+
     switch (activeKey) {
       case "history":
         return <HistorySection />;
@@ -180,9 +195,8 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                <Pressable onPress={handleLogout} style={styles.logoutBtn}>
-                  <Text style={styles.logoutText}>Logout</Text>
-                </Pressable>
+                {/* LOGOUT BUTTON REMOVED FROM HEADER */}
+
               </View>
 
             </View>
