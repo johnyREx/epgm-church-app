@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "epgm-church-app",
+    "name": "Bishop Peter Ababio Ministries",
     "slug": "epgm-church-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bpam.churchapp"
     },
     "android": {
+      "package": "com.bpam.churchapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -35,7 +37,7 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#1a1a1a"
           }
         }
       ],
