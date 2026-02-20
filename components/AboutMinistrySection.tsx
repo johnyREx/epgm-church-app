@@ -18,7 +18,7 @@ const LEADERS_PRIMARY: Leader[] = [
     id: "bishop",
     name: "Bishop Dr. Peter Ababio",
     role: "Leader / Overseer",
-    photo: require("../assets/images/bishop-peter.png"),
+    photo: require("../assets/images/bishop_peter.png"),
   },
   {
     id: "revSabina",
@@ -30,7 +30,7 @@ const LEADERS_PRIMARY: Leader[] = [
     id: "apostleKwabena",
     name: "Apostle Kwabena Boateng",
     role: "Apostle",
-    photo: require("../assets/images/apostle-kwabena.png"),
+    photo: require("../assets/images/apostle_kwabena.png"),
   },
   {
     id: "revDaniel",
@@ -48,13 +48,13 @@ const LEADERS_PRIMARY: Leader[] = [
     id: "dorothy",
     name: "Mrs. Dorothy Boateng",
     role: "Secretary",
-    photo: require("../assets/images/mrs-dorothy.png"),
+    photo: require("../assets/images/mrs_dorothy.png"),
   },
   {
     id: "alice",
     name: "Sister Alice Osei",
     role: "Church Elder",
-    photo: require("../assets/images/sis-alice.png"),
+    photo: require("../assets/images/sis_alice.png"),
   },
 ];
 

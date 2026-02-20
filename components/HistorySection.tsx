@@ -42,7 +42,7 @@ export default function HistorySection() {
 
         <View style={styles.portraitBlock}>
           <Image
-            source={require("../assets/images/revSabina.png")}
+            source={require("../assets/images/rev_sabina.png")}
             style={styles.portrait}
             resizeMode="cover"
           />
