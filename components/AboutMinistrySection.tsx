@@ -60,7 +60,7 @@ const LEADERS_PRIMARY: Leader[] = [
 ];
 
 const LEADERS_OTHER: Leader[] = [
-  { id: "kenneth", name: "Keneth Amaro", role: "Church Elder" },
+  { id: "kenneth", name: "Elder Keneth Amaro", role: "Church Elder" },
   { id: "felicia", name: "Sister Felicia Niamke", role: "Church Elder" },
   { id: "john", name: "Brother John Kwofie", role: "Youth President" },
   { id: "seth", name: "Brother Seth Andrews Ackah", role: "Youth Vice President" },
@@ -73,7 +73,8 @@ const DEPARTMENTS: Department[] = [
       "Reverend Sabina Nsiah Ababio",
       "Reverend Marcia Hayford",
       "Sister Alice Osei",
-      "Keneth Amaro",
+      "Elder Keneth Amaro",
+      "Brother John Kwofie",
     ],
   },
   {
