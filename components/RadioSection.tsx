@@ -1,17 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
 import { RADIO_STATIONS, RadioStation } from "../data/radioStations";
 import * as Radio from "../src/lib/RadioPlayer";
 
 export default function RadioSection() {
   const stations = useMemo(() => RADIO_STATIONS, []);
+  const { width } = useWindowDimensions();
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // responsive columns
+  const numColumns = width >= 900 ? 3 : 2;
+  const tileWidth = numColumns === 3 ? "31.5%" : "48%";
+
   useEffect(() => {
-    // keep UI in sync with global player
     const sync = () => {
       const s = Radio.getState();
       setActiveId(s.active?.id ?? null);
@@ -27,8 +38,19 @@ export default function RadioSection() {
     try {
       setError(null);
       setLoadingId(station.id);
+
+      const current = Radio.getState();
+
+      // if user taps the currently selected station, just toggle pause/play
+      if (current.active?.id === station.id) {
+        await Radio.togglePause();
+        return;
+      }
+
+      // IMPORTANT: stop previous station before starting another
+      await Radio.stop();
       await Radio.playStation(station);
-    } catch {
+    } catch (e) {
       setError("Could not start the radio stream. Please try again.");
     } finally {
       setLoadingId(null);
@@ -39,14 +61,18 @@ export default function RadioSection() {
     try {
       setError(null);
       await Radio.togglePause();
-    } catch {}
+    } catch {
+      setError("Could not control playback.");
+    }
   };
 
   const onStop = async () => {
     try {
       setError(null);
       await Radio.stop();
-    } catch {}
+    } catch {
+      setError("Could not stop playback.");
+    }
   };
 
   const activeStation = stations.find((s) => s.id === activeId) ?? null;
@@ -56,15 +82,15 @@ export default function RadioSection() {
       <View style={styles.headerBlock}>
         <Text style={styles.title}>📻 EPGM Radio</Text>
         <Text style={styles.subtitle}>
-          Start a station and keep listening while you browse other pages.
+          Listen live while browsing the app. Tap any station below to start streaming.
         </Text>
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {/* GRID */}
+      {/* STATIONS */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Stations</Text>
+        <Text style={styles.cardTitle}>Available Stations</Text>
 
         <View style={styles.grid}>
           {stations.map((s) => {
@@ -75,33 +101,55 @@ export default function RadioSection() {
               <Pressable
                 key={s.id}
                 onPress={() => onPlay(s)}
-                style={[styles.stationTile, selected && styles.stationTileActive]}
+                style={[
+                  styles.stationTile,
+                  { width: tileWidth },
+                  selected && styles.stationTileActive,
+                ]}
               >
-                <Text style={styles.stationEmoji}>{selected ? "🔊" : "📡"}</Text>
+                <View style={styles.stationTop}>
+                  <Text style={styles.stationEmoji}>
+                    {loading ? "⏳" : selected ? "🔊" : "📡"}
+                  </Text>
+
+                  <View style={[styles.statusBadge, selected && styles.statusBadgeActive]}>
+                    <Text style={[styles.statusBadgeText, selected && styles.statusBadgeTextActive]}>
+                      {loading
+                        ? "Connecting"
+                        : selected
+                        ? isPlaying
+                          ? "Live"
+                          : "Paused"
+                        : "Ready"}
+                    </Text>
+                  </View>
+                </View>
 
                 <Text style={styles.stationName} numberOfLines={2}>
                   {s.name}
                 </Text>
 
                 <Text style={styles.stationHint}>
-                  {loading ? "Connecting..." : selected ? (isPlaying ? "Playing" : "Paused") : "Tap to play"}
+                  {loading
+                    ? "Please wait..."
+                    : selected
+                    ? isPlaying
+                      ? "Now streaming"
+                      : "Tap to resume"
+                    : "Tap to play"}
                 </Text>
-
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
-                    {loading ? "…" : selected ? (isPlaying ? "⏸" : "▶️") : "▶️"}
-                  </Text>
-                </View>
               </Pressable>
             );
           })}
         </View>
       </View>
 
-      {/* PLAYER */}
+      {/* NOW PLAYING */}
       <View style={styles.playerCard}>
         <Text style={styles.playerTitle}>Now Playing</Text>
-        <Text style={styles.playerStation}>{activeStation?.name || "No station selected"}</Text>
+        <Text style={styles.playerStation}>
+          {activeStation?.name || "No station selected"}
+        </Text>
 
         <View style={styles.playerButtons}>
           <Pressable
@@ -122,7 +170,7 @@ export default function RadioSection() {
         </View>
 
         <Text style={styles.note}>
-          Tip: Switching tabs will NOT stop audio anymore. Use Stop to end.
+          Selecting another station will now stop the previous one automatically.
         </Text>
       </View>
     </View>
@@ -130,8 +178,13 @@ export default function RadioSection() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 14 },
-  headerBlock: { paddingHorizontal: 4 },
+  container: {
+    gap: 14,
+  },
+
+  headerBlock: {
+    paddingHorizontal: 4,
+  },
   title: {
     fontSize: 18,
     fontWeight: "800",
@@ -139,7 +192,12 @@ const styles = StyleSheet.create({
     textShadowColor: "#f59e0b",
     textShadowRadius: 6,
   },
-  subtitle: { fontSize: 13, color: "#e5e7eb", marginTop: 6, lineHeight: 20 },
+  subtitle: {
+    fontSize: 13,
+    color: "#e5e7eb",
+    marginTop: 6,
+    lineHeight: 20,
+  },
 
   error: {
     color: "#fecaca",
@@ -154,11 +212,16 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     padding: 14,
-    backgroundColor: "rgba(15,23,42,0.9)",
+    backgroundColor: "rgba(15,23,42,0.92)",
     borderWidth: 1.25,
     borderColor: "rgba(250,204,21,0.35)",
   },
-  cardTitle: { fontSize: 14, fontWeight: "800", color: "#fefce8", marginBottom: 10 },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#fefce8",
+    marginBottom: 12,
+  },
 
   grid: {
     flexDirection: "row",
@@ -168,47 +231,89 @@ const styles = StyleSheet.create({
   },
 
   stationTile: {
-    width: "48%",
     borderRadius: 18,
     padding: 14,
-    backgroundColor: "rgba(2,6,23,0.35)",
+    backgroundColor: "rgba(2,6,23,0.4)",
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.10)",
-    position: "relative",
-    minHeight: 120,
+    minHeight: 130,
   },
   stationTileActive: {
-    borderColor: "rgba(250,204,21,0.55)",
-    backgroundColor: "rgba(30,41,59,0.65)",
+    borderColor: "rgba(250,204,21,0.65)",
+    backgroundColor: "rgba(30,41,59,0.78)",
+    shadowColor: "#f59e0b",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
   },
-  stationEmoji: { fontSize: 18, marginBottom: 8 },
-  stationName: { fontSize: 13, fontWeight: "900", color: "#fef3c7" },
-  stationHint: { fontSize: 11, color: "#e5e7eb", marginTop: 6, lineHeight: 16 },
 
-  badge: {
-    position: "absolute",
-    right: 10,
-    top: 10,
+  stationTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  stationEmoji: {
+    fontSize: 20,
+    marginBottom: 10,
+  },
+  stationName: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: "#fef3c7",
+    marginTop: 6,
+  },
+  stationHint: {
+    fontSize: 11,
+    color: "#e5e7eb",
+    marginTop: 8,
+    lineHeight: 16,
+  },
+
+  statusBadge: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 999,
     backgroundColor: "rgba(15,23,42,0.85)",
     borderWidth: 1,
-    borderColor: "rgba(250,204,21,0.35)",
+    borderColor: "rgba(148,163,184,0.25)",
   },
-  badgeText: { color: "#fbbf24", fontWeight: "900" },
+  statusBadgeActive: {
+    borderColor: "rgba(250,204,21,0.4)",
+    backgroundColor: "rgba(120,53,15,0.35)",
+  },
+  statusBadgeText: {
+    color: "#cbd5e1",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  statusBadgeTextActive: {
+    color: "#fde68a",
+  },
 
   playerCard: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: "rgba(15,23,42,0.9)",
+    backgroundColor: "rgba(15,23,42,0.92)",
     borderWidth: 1.25,
     borderColor: "rgba(148,163,184,0.45)",
   },
-  playerTitle: { fontSize: 13, fontWeight: "800", color: "#fefce8" },
-  playerStation: { fontSize: 14, fontWeight: "800", color: "#fde68a", marginTop: 6 },
+  playerTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#fefce8",
+  },
+  playerStation: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#fde68a",
+    marginTop: 6,
+  },
 
-  playerButtons: { flexDirection: "row", gap: 10, marginTop: 12 },
+  playerButtons: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14,
+  },
   btn: {
     flex: 1,
     borderRadius: 999,
@@ -217,7 +322,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#f97316",
   },
-  btnText: { fontSize: 13, fontWeight: "800", color: "#0b1120" },
+  btnText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#0b1120",
+  },
   btnOutline: {
     flex: 1,
     borderRadius: 999,
@@ -227,8 +336,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f97316",
   },
-  btnOutlineText: { fontSize: 13, fontWeight: "800", color: "#fbbf24" },
-  btnDisabled: { opacity: 0.6 },
+  btnOutlineText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#fbbf24",
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
 
-  note: { fontSize: 11, color: "#9ca3af", marginTop: 10, lineHeight: 16 },
+  note: {
+    fontSize: 11,
+    color: "#9ca3af",
+    marginTop: 10,
+    lineHeight: 16,
+  },
 });
