@@ -1,11 +1,18 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, ScrollView, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 
 type Leader = {
   id: string;
   name: string;
   role: string;
-  photo?: any; // require(...)
+  photo?: any;
 };
 
 type Department = {
@@ -24,13 +31,7 @@ const LEADERS_PRIMARY: Leader[] = [
     id: "revSabina",
     name: "Reverend Sabina Nsiah Ababio",
     role: "Assistant Overseer",
-    photo: require("../assets/images/rev-sabina.png"),
-  },
-  {
-    id: "apostleKwabena",
-    name: "Apostle Kwabena Boateng",
-    role: "Apostle",
-    photo: require("../assets/images/apostle_kwabena.png"),
+    photo: require("../assets/images/rev_sabina.png"),
   },
   {
     id: "revDaniel",
@@ -68,7 +69,12 @@ const LEADERS_OTHER: Leader[] = [
 const DEPARTMENTS: Department[] = [
   {
     name: "Harvest Committee",
-    members: ["Apostle Kwabena Boateng", "Sister Alice Osei", "Keneth Amaro"],
+    members: [
+      "Reverend Sabina Nsiah Ababio",
+      "Reverend Marcia Hayford",
+      "Sister Alice Osei",
+      "Keneth Amaro",
+    ],
   },
   {
     name: "Ushers",
@@ -114,7 +120,6 @@ function LeaderNode({
   );
 }
 
-/** A tier = row of nodes + connectors above it (optional) */
 function Tier({
   people,
   showTopConnector = true,
@@ -125,8 +130,8 @@ function Tier({
   maxPerRow?: number;
 }) {
   const { width } = useWindowDimensions();
-  // responsive: try to fit cards nicely on phones
-  const cardWidth = Math.min(170, Math.max(140, (width - 90) / Math.min(maxPerRow, people.length)));
+  const itemsPerRow = Math.min(maxPerRow, people.length || 1);
+  const cardWidth = Math.min(180, Math.max(145, (width - 90) / itemsPerRow));
 
   return (
     <View style={styles.tierWrap}>
@@ -154,21 +159,29 @@ export default function AboutMinistrySection() {
   const bishop = LEADERS_PRIMARY.find((l) => l.id === "bishop")!;
   const assistant = LEADERS_PRIMARY.find((l) => l.id === "revSabina")!;
   const ministers = LEADERS_PRIMARY.filter((l) =>
-    ["apostleKwabena", "revDaniel", "revMarcia"].includes(l.id)
+    ["revDaniel", "revMarcia"].includes(l.id)
   );
-  const adminAndElder = LEADERS_PRIMARY.filter((l) => ["dorothy", "alice"].includes(l.id));
+  const adminAndElder = LEADERS_PRIMARY.filter((l) =>
+    ["dorothy", "alice"].includes(l.id)
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.headerBlock}>
         <Text style={styles.title}>About the Ministry</Text>
         <Text style={styles.subtitle}>
-          Leadership hierarchy and departments of End Time Prayer Global Ministry (E.P.G.M - B.P.A.M).
+          Leadership hierarchy and departments of Bishop Peter Ababio Ministries (B.P.A.M).
         </Text>
       </View>
 
       {/* HIERARCHY TREE */}
       <View style={styles.card}>
+        <Image
+          source={require("../assets/images/logo.png")}
+          style={styles.watermarkLogo}
+          resizeMode="contain"
+        />
+
         <Text style={styles.cardTitle}>Leadership Hierarchy</Text>
 
         {/* TOP NODE */}
@@ -190,8 +203,8 @@ export default function AboutMinistrySection() {
           </View>
         </View>
 
-        {/* MINISTERS/APOSTLE TIER */}
-        <Tier people={ministers} />
+        {/* MINISTERS TIER */}
+        <Tier people={ministers} maxPerRow={2} />
 
         {/* ADMIN / ELDER TIER */}
         <Tier people={adminAndElder} maxPerRow={2} />
@@ -199,6 +212,12 @@ export default function AboutMinistrySection() {
 
       {/* OTHER LEADERS */}
       <View style={styles.card}>
+        <Image
+          source={require("../assets/images/logo.png")}
+          style={styles.watermarkLogo}
+          resizeMode="contain"
+        />
+
         <Text style={styles.cardTitle}>Other Leaders</Text>
         <View style={styles.simpleGrid}>
           {LEADERS_OTHER.map((p) => (
@@ -211,6 +230,12 @@ export default function AboutMinistrySection() {
 
       {/* DEPARTMENTS */}
       <View style={styles.card}>
+        <Image
+          source={require("../assets/images/logo.png")}
+          style={styles.watermarkLogo}
+          resizeMode="contain"
+        />
+
         <Text style={styles.cardTitle}>Departments</Text>
 
         {DEPARTMENTS.map((dept) => (
@@ -258,9 +283,18 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     padding: 16,
-    backgroundColor: "rgba(15,23,42,0.9)",
+    backgroundColor: "rgba(15,23,42,0.92)",
     borderWidth: 1.25,
     borderColor: "rgba(250,204,21,0.35)",
+    overflow: "hidden",
+  },
+  watermarkLogo: {
+    position: "absolute",
+    width: 260,
+    height: 260,
+    right: -25,
+    top: 25,
+    opacity: 0.07,
   },
   cardTitle: {
     fontSize: 14,
@@ -269,18 +303,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // TREE
   topWrap: {
     alignItems: "center",
   },
   topNodeCard: {
     borderRadius: 18,
     padding: 12,
-    backgroundColor: "rgba(2,6,23,0.35)",
+    backgroundColor: "rgba(2,6,23,0.55)",
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
     alignItems: "center",
-    width: 230,
+    width: 240,
+    shadowColor: "#facc15",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
   },
 
   downConnector: {
@@ -289,13 +326,13 @@ const styles = StyleSheet.create({
   },
   vLineTall: {
     width: 2,
-    height: 18,
-    backgroundColor: "rgba(250,204,21,0.55)",
+    height: 22,
+    backgroundColor: "rgba(250,204,21,0.6)",
     borderRadius: 2,
   },
 
   tierWrap: {
-    marginTop: 10,
+    marginTop: 12,
   },
   connectorBlock: {
     alignItems: "center",
@@ -304,7 +341,7 @@ const styles = StyleSheet.create({
   vLine: {
     width: 2,
     height: 14,
-    backgroundColor: "rgba(250,204,21,0.55)",
+    backgroundColor: "rgba(250,204,21,0.6)",
     borderRadius: 2,
   },
   hLine: {
@@ -322,15 +359,14 @@ const styles = StyleSheet.create({
   },
   tierCard: {
     borderRadius: 18,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: "rgba(2,6,23,0.35)",
+    backgroundColor: "rgba(2,6,23,0.45)",
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
     alignItems: "center",
   },
 
-  // NODE
   nodeWrap: {
     alignItems: "center",
   },
@@ -338,9 +374,9 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   avatarCircle: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: "rgba(15,23,42,0.95)",
     borderWidth: 1.5,
     borderColor: "rgba(250,204,21,0.55)",
@@ -350,9 +386,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   avatarCircleLg: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
   },
   avatarImage: {
     width: "100%",
@@ -386,7 +422,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  // OTHER LEADERS GRID
   simpleGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -397,13 +432,12 @@ const styles = StyleSheet.create({
     width: 165,
     borderRadius: 18,
     padding: 12,
-    backgroundColor: "rgba(2,6,23,0.35)",
+    backgroundColor: "rgba(2,6,23,0.45)",
     borderWidth: 1,
     borderColor: "rgba(248,250,252,0.12)",
     alignItems: "center",
   },
 
-  // DEPARTMENTS
   deptBlock: {
     marginBottom: 12,
   },
