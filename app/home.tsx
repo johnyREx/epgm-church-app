@@ -216,7 +216,7 @@ export default function HomeScreen() {
                   adjustsFontSizeToFit
                   minimumFontScale={0.72}
                 >
-                  BPAM App{" "}
+                  BPAM Church App{" "}
                   <Text style={styles.footerVersion}>{APP_VERSION}</Text>
                 </Text>
 
