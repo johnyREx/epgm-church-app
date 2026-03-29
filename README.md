@@ -1,50 +1,162 @@
-# Welcome to your Expo app 👋
+# 📱 BPAM Church App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> A modern mobile application for **Bishop Peter Ababio Ministries (B.P.A.M)** built with React Native (Expo), designed to provide spiritual resources, live engagement, and community connection.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+- 📖 **Bible Study Enrollment**
+- 📻 **Live Radio Streaming (Global Player)**
+- 🙏 **Prayer Request Submission**
+- 🎥 **Live Stream Integration**
+- 📜 **Church Constitution Viewer**
+- 🧭 **Ministry Leadership Hierarchy**
+- 👤 **Offline Profile System**
+- 🌍 **Multi-region Play Store Deployment**
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🏗️ Tech Stack
 
-In the output, you'll find options to open the app in a
+- **React Native (Expo)**
+- **Expo Router**
+- **TypeScript**
+- **AsyncStorage (Offline persistence)**
+- **Custom Audio Streaming Engine**
+- **Google Play Console (Closed Testing → Production)**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 📂 Project Structure
 
 ```bash
-npm run reset-project
-```
+app/            # App screens & navigation (Expo Router)
+components/     # Reusable UI sections (Radio, History, etc.)
+assets/         # Images, icons, branding assets
+constants/      # Theme and global constants
+data/           # Static data (e.g. radio stations)
+hooks/          # Custom hooks (theme, color scheme)
+src/lib/        # Core logic (e.g. radio player engine)
+scripts/        # Utility scripts
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+🧠 Architecture Overview
 
-## Learn more
+The app follows a modular component-based architecture:
+	•	Each feature (Radio, History, Bible Study, etc.) is built as an isolated section component
+	•	Navigation is handled using Expo Router
+	•	State is primarily local + controlled global logic (for audio)
+	•	No backend required — app is offline-first
 
-To learn more about developing your project with Expo, look at the following resources:
+⸻
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+🎧 Radio System (Core Feature)
 
-## Join the community
+The radio system is designed using a global player architecture:
 
-Join our community of developers creating universal apps.
+Key Concepts:
+	•	Singleton audio player
+	•	Centralized state management
+	•	Cross-screen synchronization
+	•	Controlled playback logic
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Why this approach?
+
+Without a global player:
+
+❌ Multiple radios can play at once
+❌ State becomes inconsistent
+❌ Poor user experience
+
+With this system:
+
+✅ Only one station plays at a time
+✅ Seamless switching between stations
+✅ Persistent playback across screens
+
+⸻
+
+👤 Profile System
+	•	Stored locally using AsyncStorage
+	•	No backend required
+	•	User enters:
+	•	Name
+	•	Status
+	•	Avatar
+
+This ensures:
+
+✅ Privacy
+✅ Offline usability
+✅ Lightweight performance
+
+⸻
+
+🎨 UI/UX Design Philosophy
+	•	Dark + Gold spiritual theme
+	•	Card-based layout for clarity
+	•	Hierarchical display for ministry structure
+	•	Minimal clutter, focus on content
+	•	Responsive design across devices
+
+⸻
+
+🚀 Deployment Process (Google Play)
+
+This app follows the official Google Play release pipeline:
+
+1. Closed Testing
+	•	Minimum 12 testers
+	•	Minimum 14 days testing
+
+2. Production Access
+	•	Requested after testing completion
+	•	Reviewed by Google
+
+3. Production Release
+	•	AAB uploaded
+	•	Store listing finalized
+	•	Released to global users
+
+⸻
+
+📦 Build & Run
+# Install dependencies
+npm install
+
+# Start development server
+npx expo start
+
+# Build Android (EAS)
+npx eas build --platform android# Install dependencies
+npm install
+
+# Start development server
+npx expo start
+
+# Build Android (EAS)
+npx eas build --platform android
+
+🔐 Permissions
+
+The app may request:
+	•	Internet access (for radio & streaming)
+	•	Optional input data (prayer requests)
+
+No sensitive personal data is stored or sold.
+
+⸻
+
+🧑‍💻 Developer
+
+Johny Rex
+Built with ❤️
+	•	GitHub: https://github.com/johnyREx
+
+⸻
+
+📜 License
+
+This project is developed for Bishop Peter Ababio Ministries.
+All rights reserved.
+
